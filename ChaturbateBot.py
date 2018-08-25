@@ -262,7 +262,7 @@ def telegram_bot():
 
         if username=="all":
             exec_query("DELETE FROM CHATURBATE \
-        WHERE CHAT_ID='{}'".format(username, chatid))
+        WHERE CHAT_ID='{}'".format(chatid))
             risposta(message.chat.id, "All usernames have been removed")
 
         elif username in username_list:  # this could have a better implementation but it works
