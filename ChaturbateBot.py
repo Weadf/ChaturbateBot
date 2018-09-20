@@ -9,6 +9,8 @@ import sqlite3
 import threading
 from concurrent.futures import ThreadPoolExecutor
 from requests_futures.sessions import FuturesSession
+import json
+
 ap = argparse.ArgumentParser()
 ap.add_argument(
     "-k", "--key", required=True, type=str, help="Telegram bot key")
@@ -137,7 +139,7 @@ def check_online_status():
             time.sleep(wait_time)
         for x in range(0, len(response_list)):
             try:
-                if (b"offline" in response_list[x] and response != "error"):
+                if (json.loads(response_list[x])["room_status"] == "offline" and response != "error"):
                     if online_list[x] == "T":
                         exec_query("UPDATE CHATURBATE \
                     SET ONLINE='{}'\
