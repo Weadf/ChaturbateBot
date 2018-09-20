@@ -131,8 +131,7 @@ def check_online_status():
             try:
                 response = ((session.get(
                     "https://it.chaturbate.com/api/chatvideocontext/" +
-                    username_list[x].lower())).result()).content.decode('latin1') #lowecase to fix old entries in db+ more safety
-
+                    username_list[x].lower())).result()).content #lowecase to fix old entries in db+ more safety
             except Exception as e:
                 handle_exception(e)
                 response = "error"
