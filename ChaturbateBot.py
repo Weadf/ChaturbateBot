@@ -31,8 +31,7 @@ ap.add_argument(
     required=False,
     type=int,
     default=10,
-    help=
-    "The number of multiple http connection opened at the same to check chaturbate"
+    help="The number of multiple http connection opened at the same to check chaturbate"
 )
 ap.add_argument(
     "-l",
@@ -260,7 +259,7 @@ def telegram_bot():
         finally:
             db.close()
 
-        if username=="all":
+        if username == "all":
             exec_query("DELETE FROM CHATURBATE \
         WHERE CHAT_ID='{}'".format(chatid))
             risposta(message.chat.id, "All usernames have been removed")
@@ -284,7 +283,7 @@ def telegram_bot():
         db = sqlite3.connect(bot_path + '/database.db')
         cursor = db.cursor()
         sql = "SELECT * FROM CHATURBATE \
-   WHERE CHAT_ID='{}'".format(chatid)
+        WHERE CHAT_ID='{}'".format(chatid)
         try:
             cursor.execute(sql)
             results = cursor.fetchall()
@@ -318,7 +317,7 @@ def telegram_bot():
 
 threads = []
 check_online_status_thread = threading.Thread(target=check_online_status)
-telegram_bot_thread = threading.Thread(target=telegram_bot)
+telegram_bot_thread = threading.Thread(target=telegram_bot, daemon=True)
 threads.append(check_online_status_thread)
 threads.append(telegram_bot_thread)
 check_online_status_thread.start()
