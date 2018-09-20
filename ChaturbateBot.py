@@ -131,7 +131,7 @@ def check_online_status():
             try:
                 response = ((session.get(
                     "https://it.chaturbate.com/api/chatvideocontext/" +
-                    username_list[x])).result()).content
+                    username_list[x].lower())).result()).content #lowecase to fix old entries in db+ more safety
             except Exception as e:
                 handle_exception(e)
                 response = "error"
@@ -172,19 +172,20 @@ def telegram_bot():
     @bot.message_handler(commands=['add'])
     def handle_add(message):
         print("add")
+        chatid = message.chat.id
         try:
             if len(message.text.split(" ")) < 2:
                 risposta(
-                    message.chat.id,
+                    chatid,
                     "You may have made a mistake, check your input and try again"
                 )
                 return
-            username = message.text.split(" ")[1]
+            username = message.text.split(" ")[1].lower() #not lowercase usernames bug the api calls
         except Exception as e:
+            risposta(chatid,"An error happened, try again")
             handle_exception(e)
-            username = ""  # set username to a blank string
+            return
         try:
-            chatid = message.chat.id
             target = "http://it.chaturbate.com/" + username
             req = urllib.request.Request(
                 target, headers={'User-Agent': 'Mozilla/5.0'})
@@ -192,7 +193,7 @@ def telegram_bot():
             if (b"Access Denied. This room has been banned.</span>" in html
                     or username == ""):
                 risposta(
-                    message.chat.id, username +
+                    chatid, username +
                     " was not added because it doesn't exist or it has been banned. If you are sure it exists, you may want to try the command again"
                 )
             else:
@@ -214,19 +215,19 @@ def telegram_bot():
                     if username not in username_list:
                         exec_query("INSERT INTO CHATURBATE \
             VALUES ('{}', '{}', '{}')".format(username, chatid, "F"))
-                        risposta(message.chat.id, username + " has been added")
+                        risposta(chatid, username + " has been added")
                     else:
-                        risposta(message.chat.id,
+                        risposta(chatid,
                                  username + " has already been added")
                 else:
                     risposta(
-                        message.chat.id,
+                        chatid,
                         "You have reached your maximum number of permitted followed models, which is "
                         + str(user_limit))
         except Exception as e:
             handle_exception(e)
             risposta(
-                message.chat.id, username +
+                chatid, username +
                 " was not added because it doesn't exist or it has been banned"
             )
 
@@ -237,16 +238,18 @@ def telegram_bot():
         username_list = []
         if len(message.text.split(" ")) < 2:
             risposta(
-                message.chat.id,
+                chatid,
                 "You may have made a mistake, check your input and try again")
             return
         username = message.text.split(" ")[1]
         if username == "":
             risposta(
-                message.chat.id,
+                chatid,
                 "The username you tried to remove doesn't exist or there has been an error"
             )
             return
+
+
         sql = "SELECT * FROM CHATURBATE WHERE USERNAME='{}' AND CHAT_ID='{}'".format(
             username, chatid)
         try:
@@ -264,16 +267,16 @@ def telegram_bot():
         if username == "all":
             exec_query("DELETE FROM CHATURBATE \
         WHERE CHAT_ID='{}'".format(chatid))
-            risposta(message.chat.id, "All usernames have been removed")
+            risposta(chatid, "All usernames have been removed")
 
         elif username in username_list:  # this could have a better implementation but it works
             exec_query("DELETE FROM CHATURBATE \
         WHERE USERNAME='{}' AND CHAT_ID='{}'".format(username, chatid))
-            risposta(message.chat.id, username + " has been removed")
+            risposta(chatid, username + " has been removed")
 
         else:
             risposta(
-                message.chat.id,
+                chatid,
                 "You aren't following the username you have tried to remove")
 
     @bot.message_handler(commands=['list'])
@@ -304,9 +307,9 @@ def telegram_bot():
         finally:
             db.close()
         if followed_users == "":
-            risposta(message.chat.id, "You aren't following any user")
+            risposta(chatid, "You aren't following any user")
         else:
-            risposta_html(message.chat.id,
+            risposta_html(chatid,
                           "These are the users you are currently following:\n"
                           + followed_users)
 
