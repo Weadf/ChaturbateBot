@@ -165,7 +165,7 @@ def telegram_bot():
     def handle_start_help(message):
         risposta(
             message.chat.id,
-            "/add username to add an username to check \n/remove username to remove an username \n/list to see which users you are currently following"
+            "/add username to add an username to check \n/remove username to remove an username (you can use /remove all to remove all models at once) \n/list to see which users you are currently following"
         )
 
     @bot.message_handler(commands=['add'])
