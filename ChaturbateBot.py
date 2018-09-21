@@ -136,7 +136,7 @@ def check_online_status():
             try:
                 response = (
                     (session.
-                     get("https://it.chaturbate.com/api/chatvideocontext/" +
+                     get("https://en.chaturbate.com/api/chatvideocontext/" +
                          username_list[x].lower())).result()
                 ).content  # lowercase to fix old entries in db+ more safety
             except Exception as e:
@@ -165,17 +165,43 @@ def check_online_status():
                             "UPDATE CHATURBATE SET ONLINE='{}' WHERE USERNAME='{}' AND CHAT_ID='{}'"
                             .format("T", username_list[x], chatid_list[x]))
                 elif response != "error":
-                    response = json.loads(response_list[x])['status']
-                    if "401" in str(response):
-                        exec_query(
-                            "DELETE FROM CHATURBATE WHERE USERNAME='{}'".
-                            format(username_list[x]))
-                        risposta(
-                            chatid_list[x], username_list[x] +
-                            " has been removed from your followed usernames because it was banned"
-                        )
-                        print(username_list[x],
-                              "has been removed because it was banned")
+                    response = json.loads(response_list[x])
+                    if "401" in str(response['status']):
+                        if "This room requires a password" in str(
+                                response['detail']):
+                            exec_query(
+                                "DELETE FROM CHATURBATE WHERE USERNAME='{}'".
+                                format(username_list[x]))
+                            risposta(
+                                chatid_list[x], username_list[x] +
+                                " has been removed because it requires a password and cannot be tracked"
+                            )
+                            print(
+                                username_list[x],
+                                "has been removed because it requires a password and cannot be tracked"
+                            )
+                        if "Room is deleted" in str(response['detail']):
+                            exec_query(
+                                "DELETE FROM CHATURBATE WHERE USERNAME='{}'".
+                                format(username_list[x]))
+                            risposta(
+                                chatid_list[x], username_list[x] +
+                                " has been removed because room has been deleted"
+                            )
+                            print(
+                                username_list[x],
+                                "has been removed because room has been deleted"
+                            )
+                        if "This room has been banned" in str(
+                                response['detail']):
+                            exec_query(
+                                "DELETE FROM CHATURBATE WHERE USERNAME='{}'".
+                                format(username_list[x]))
+                            risposta(
+                                chatid_list[x], username_list[x] +
+                                " has been removed because has been banned")
+                            print(username_list[x],
+                                  "has been removed because has been banned")
             except Exception as e:
                 handle_exception(e)
 
@@ -231,7 +257,9 @@ def telegram_bot():
                     handle_exception(e)
                 finally:
                     db.close()
-                if len(username_list) < user_limit or user_limit == 0:
+                if len(
+                        username_list
+                ) < user_limit or user_limit == 0:  #0 is unlimited usernames
                     if username not in username_list:
                         exec_query(
                             "INSERT INTO CHATURBATE VALUES ('{}', '{}', '{}')".
