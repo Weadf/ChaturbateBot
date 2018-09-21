@@ -166,7 +166,7 @@ def check_online_status():
                             .format("T", username_list[x], chatid_list[x]))
                 elif response != "error":
                     response = json.loads(response_list[x])['status']
-                    if "401" in response:
+                    if "401" in str(response):
                         exec_query(
                             "DELETE FROM CHATURBATE WHERE USERNAME='{}'".
                             format(username_list[x]))
