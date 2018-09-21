@@ -33,7 +33,8 @@ ap.add_argument(
     required=False,
     type=int,
     default=10,
-    help="The number of multiple http connection opened at the same to check chaturbate"
+    help=
+    "The number of multiple http connection opened at the same to check chaturbate"
 )
 ap.add_argument(
     "-l",
@@ -43,7 +44,11 @@ ap.add_argument(
     default=0,
     help="The maximum number of multiple users a person can follow")
 ap.add_argument(
-    "-sentry", required=False, type=str, default="", help="Your sentry personal url")
+    "-sentry",
+    required=False,
+    type=str,
+    default="",
+    help="Your sentry personal url")
 args = vars(ap.parse_args())
 bot = telebot.TeleBot(args["key"])
 bot_path = args["working_folder"]
@@ -129,9 +134,11 @@ def check_online_status():
             executor=ThreadPoolExecutor(max_workers=http_threads))
         for x in range(0, len(username_list)):
             try:
-                response = ((session.get(
-                    "https://it.chaturbate.com/api/chatvideocontext/" +
-                    username_list[x].lower())).result()).content  # lowercase to fix old entries in db+ more safety
+                response = (
+                    (session.
+                     get("https://it.chaturbate.com/api/chatvideocontext/" +
+                         username_list[x].lower())).result()
+                ).content  # lowercase to fix old entries in db+ more safety
             except Exception as e:
                 handle_exception(e)
                 response = "error"
@@ -139,13 +146,14 @@ def check_online_status():
             time.sleep(wait_time)
         for x in range(0, len(response_list)):
             try:
-                if ("status" not in json.loads(response_list[x]) and response != "error"):
-                    if (json.loads(response_list[x])["room_status"] == "offline"):
+                if ("status" not in json.loads(response_list[x])
+                        and response != "error"):
+                    if (json.loads(
+                            response_list[x])["room_status"] == "offline"):
                         if online_list[x] == "T":
-                            exec_query("UPDATE CHATURBATE \
-                    SET ONLINE='{}'\
-                    WHERE USERNAME='{}' AND CHAT_ID='{}'".format(
-                                "F", username_list[x], chatid_list[x]))
+                            exec_query(
+                                "UPDATE CHATURBATE SET ONLINE='{}' WHERE USERNAME='{}' AND CHAT_ID='{}'"
+                                .format("F", username_list[x], chatid_list[x]))
                             risposta(chatid_list[x],
                                      username_list[x] + " is now offline")
                     elif (online_list[x] == "F"):
@@ -153,19 +161,21 @@ def check_online_status():
                             chatid_list[x], username_list[x] +
                             " is now online! You can watch the live here: http://en.chaturbate.com/"
                             + username_list[x])
-                        exec_query("UPDATE CHATURBATE \
-                SET ONLINE='{}'\
-                WHERE USERNAME='{}' AND CHAT_ID='{}'".format(
-                            "T", username_list[x], chatid_list[x]))
+                        exec_query(
+                            "UPDATE CHATURBATE SET ONLINE='{}' WHERE USERNAME='{}' AND CHAT_ID='{}'"
+                            .format("T", username_list[x], chatid_list[x]))
                 elif response != "error":
                     response = json.loads(response_list[x])['status']
                     if "401" in response:
-                        exec_query("DELETE FROM CHATURBATE \
-                     WHERE USERNAME='{}'".format(username_list[x]))
-                        risposta(chatid_list[x], username_list[x] +
-                                 " has been removed from your followed usernames because it was banned")
-                        print(
-                            username_list[x], "has been removed because it was banned")
+                        exec_query(
+                            "DELETE FROM CHATURBATE WHERE USERNAME='{}'".
+                            format(username_list[x]))
+                        risposta(
+                            chatid_list[x], username_list[x] +
+                            " has been removed from your followed usernames because it was banned"
+                        )
+                        print(username_list[x],
+                              "has been removed because it was banned")
             except Exception as e:
                 handle_exception(e)
 
@@ -210,8 +220,8 @@ def telegram_bot():
                 username_list = []
                 db = sqlite3.connect(bot_path + '/database.db')
                 cursor = db.cursor()
-                sql = "SELECT * FROM CHATURBATE \
-          WHERE CHAT_ID='{}'".format(chatid)
+                sql = "SELECT * FROM CHATURBATE WHERE CHAT_ID='{}'".format(
+                    chatid)
                 try:
                     cursor.execute(sql)
                     results = cursor.fetchall()
@@ -223,12 +233,12 @@ def telegram_bot():
                     db.close()
                 if len(username_list) < user_limit or user_limit == 0:
                     if username not in username_list:
-                        exec_query("INSERT INTO CHATURBATE \
-            VALUES ('{}', '{}', '{}')".format(username, chatid, "F"))
+                        exec_query(
+                            "INSERT INTO CHATURBATE VALUES ('{}', '{}', '{}')".
+                            format(username, chatid, "F"))
                         risposta(chatid, username + " has been added")
                     else:
-                        risposta(chatid,
-                                 username + " has already been added")
+                        risposta(chatid, username + " has already been added")
                 else:
                     risposta(
                         chatid,
@@ -274,13 +284,14 @@ def telegram_bot():
             db.close()
 
         if username == "all":
-            exec_query("DELETE FROM CHATURBATE \
-        WHERE CHAT_ID='{}'".format(chatid))
+            exec_query(
+                "DELETE FROM CHATURBATE WHERE CHAT_ID='{}'".format(chatid))
             risposta(chatid, "All usernames have been removed")
 
         elif username in username_list:  # this could have a better implementation but it works
-            exec_query("DELETE FROM CHATURBATE \
-        WHERE USERNAME='{}' AND CHAT_ID='{}'".format(username, chatid))
+            exec_query(
+                "DELETE FROM CHATURBATE WHERE USERNAME='{}' AND CHAT_ID='{}'".
+                format(username, chatid))
             risposta(chatid, username + " has been removed")
 
         else:
@@ -296,8 +307,7 @@ def telegram_bot():
         followed_users = ""
         db = sqlite3.connect(bot_path + '/database.db')
         cursor = db.cursor()
-        sql = "SELECT * FROM CHATURBATE \
-        WHERE CHAT_ID='{}'".format(chatid)
+        sql = "SELECT * FROM CHATURBATE WHERE CHAT_ID='{}'".format(chatid)
         try:
             cursor.execute(sql)
             results = cursor.fetchall()
@@ -318,9 +328,9 @@ def telegram_bot():
         if followed_users == "":
             risposta(chatid, "You aren't following any user")
         else:
-            risposta_html(chatid,
-                          "These are the users you are currently following:\n"
-                          + followed_users)
+            risposta_html(
+                chatid, "These are the users you are currently following:\n" +
+                followed_users)
 
     while True:
         try:
