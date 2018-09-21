@@ -42,20 +42,20 @@ ap.add_argument(
     default=0,
     help="The maximum number of multiple users a person can follow")
 ap.add_argument(
-    "-raven", required=False, type=str, default="", help="Raven client key")
+    "-sentry", required=False, type=str, default="", help="Your sentry personal url")
 args = vars(ap.parse_args())
 bot = telebot.TeleBot(args["key"])
 bot_path = args["working_folder"]
 wait_time = args["time"]
-raven_key = args["raven"]
+sentry_key = args["raven"]
 http_threads = args["threads"]
 user_limit = args["limit"]
-if raven_key != "":
-    from raven import Client
-    client = Client(raven_key)
+if sentry_key != "":
+    import sentry_sdk
+    sentry_sdk.init(sentry_key)
 
     def handle_exception(e):
-        client.captureException()
+        sentry_sdk.capture_exception()
 else:
 
     def handle_exception(e):
