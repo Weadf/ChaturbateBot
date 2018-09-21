@@ -131,7 +131,7 @@ def check_online_status():
             try:
                 response = ((session.get(
                     "https://it.chaturbate.com/api/chatvideocontext/" +
-                    username_list[x].lower())).result()).content #lowecase to fix old entries in db+ more safety
+                    username_list[x].lower())).result()).content  # lowercase to fix old entries in db+ more safety
             except Exception as e:
                 handle_exception(e)
                 response = "error"
@@ -139,24 +139,33 @@ def check_online_status():
             time.sleep(wait_time)
         for x in range(0, len(response_list)):
             try:
-                if (json.loads(response_list[x])["room_status"] == "offline" and response != "error"):
-                    if online_list[x] == "T":
-                        exec_query("UPDATE CHATURBATE \
+                if ("status" not in json.loads(response_list[x]) and response != "error"):
+                    if (json.loads(response_list[x])["room_status"] == "offline"):
+                        if online_list[x] == "T":
+                            exec_query("UPDATE CHATURBATE \
                     SET ONLINE='{}'\
                     WHERE USERNAME='{}' AND CHAT_ID='{}'".format(
-                            "F", username_list[x], chatid_list[x]))
-                        risposta(chatid_list[x],
-                                 username_list[x] + " is now offline")
-                elif (online_list[x] == "F" and response != "error"):
-                    # the 1 is to replace only the 1st occurrence, otherwise the username in the target may get overwritten
-                    risposta(
-                        chatid_list[x], username_list[x] +
-                        " is now online! You can watch the live here: http://en.chaturbate.com/"
-                        + username_list[x])
-                    exec_query("UPDATE CHATURBATE \
+                                "F", username_list[x], chatid_list[x]))
+                            risposta(chatid_list[x],
+                                     username_list[x] + " is now offline")
+                    elif (online_list[x] == "F"):
+                        risposta(
+                            chatid_list[x], username_list[x] +
+                            " is now online! You can watch the live here: http://en.chaturbate.com/"
+                            + username_list[x])
+                        exec_query("UPDATE CHATURBATE \
                 SET ONLINE='{}'\
                 WHERE USERNAME='{}' AND CHAT_ID='{}'".format(
-                        "T", username_list[x], chatid_list[x]))
+                            "T", username_list[x], chatid_list[x]))
+                elif response != "error":
+                    response = json.loads(response_list[x])['status']
+                    if "401" in response:
+                        exec_query("DELETE FROM CHATURBATE \
+                     WHERE USERNAME='{}'".format(username_list[x]))
+                        risposta(chatid_list[x], username_list[x] +
+                                 " has been removed from your followed usernames because it was banned")
+                        print(
+                            username_list[x], "has been removed because it was banned")
             except Exception as e:
                 handle_exception(e)
 
@@ -180,9 +189,10 @@ def telegram_bot():
                     "You may have made a mistake, check your input and try again"
                 )
                 return
-            username = message.text.split(" ")[1].lower() #not lowercase usernames bug the api calls
+            # not lowercase usernames bug the api calls
+            username = message.text.split(" ")[1].lower()
         except Exception as e:
-            risposta(chatid,"An error happened, try again")
+            risposta(chatid, "An error happened, try again")
             handle_exception(e)
             return
         try:
@@ -248,7 +258,6 @@ def telegram_bot():
                 "The username you tried to remove doesn't exist or there has been an error"
             )
             return
-
 
         sql = "SELECT * FROM CHATURBATE WHERE USERNAME='{}' AND CHAT_ID='{}'".format(
             username, chatid)
