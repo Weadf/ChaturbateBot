@@ -236,31 +236,34 @@ def telegram_bot():
             req = urllib.request.Request(
                 target, headers={'User-Agent': 'Mozilla/5.0'})
             html = json.loads(urllib.request.urlopen(req).read())
+            if ("status" in html):
+                if "401" in str(html['status']) or username == "":
+                    if "This room requires a password" in str(
+                            response['detail']):
+                        risposta(
+                            chatid, username +
+                            " has not been added because it requires a password and cannot be tracked"
+                        )
+                        print(
+                            username,
+                            "has not been added because it requires a password and cannot be tracked"
+                        )
+                    if "Room is deleted" in str(response['detail']):
 
-            if "401" in str(html['status']) or username == "":
-                if "This room requires a password" in str(response['detail']):
-                    risposta(
-                        chatid, username +
-                        " has not been added because it requires a password and cannot be tracked"
-                    )
-                    print(
-                        username,
-                        "has not been added because it requires a password and cannot be tracked"
-                    )
-                if "Room is deleted" in str(response['detail']):
+                        risposta(
+                            chatid, username +
+                            " has not been added because room has been deleted"
+                        )
+                        print(
+                            username,
+                            "has not been added because room has been deleted")
+                    if "This room has been banned" in str(response['detail']):
 
-                    risposta(
-                        chatid, username +
-                        " has not been added because room has been deleted")
-                    print(username,
-                          "has not been added because room has been deleted")
-                if "This room has been banned" in str(response['detail']):
-
-                    risposta(
-                        chatid, username +
-                        " has not been added because has been banned")
-                    print(username,
-                          "has not been added because has been banned")
+                        risposta(
+                            chatid, username +
+                            " has not been added because has been banned")
+                        print(username,
+                              "has not been added because has been banned")
 
             else:
                 username_list = []
