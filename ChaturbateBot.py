@@ -211,7 +211,7 @@ def telegram_bot():
     def handle_start_help(message):
         risposta(
             message.chat.id,
-            "/add username to add an username to check \n/remove username to remove an username (you can use /remove all to remove all models at once) \n/list to see which users you are currently following"
+            "/add username to add an username to check \n/remove username to remove an username\n(you can use /remove all to remove all models at once) \n/list to see which users you are currently following"
         )
 
     @bot.message_handler(commands=['add'])
@@ -232,16 +232,36 @@ def telegram_bot():
             handle_exception(e)
             return
         try:
-            target = "http://it.chaturbate.com/" + username
+            target = "https://en.chaturbate.com/api/chatvideocontext/" + username
             req = urllib.request.Request(
                 target, headers={'User-Agent': 'Mozilla/5.0'})
-            html = urllib.request.urlopen(req).read()
-            if (b"Access Denied. This room has been banned.</span>" in html
-                    or username == ""):
-                risposta(
-                    chatid, username +
-                    " was not added because it doesn't exist or it has been banned. If you are sure it exists, you may want to try the command again"
-                )
+            html = json.loads(urllib.request.urlopen(req).read())
+
+            if "401" in str(html['status']) or username == "":
+                if "This room requires a password" in str(response['detail']):
+                    risposta(
+                        chatid, username +
+                        " has not been added because it requires a password and cannot be tracked"
+                    )
+                    print(
+                        username,
+                        "has not been added because it requires a password and cannot be tracked"
+                    )
+                if "Room is deleted" in str(response['detail']):
+
+                    risposta(
+                        chatid, username +
+                        " has not been added because room has been deleted")
+                    print(username,
+                          "has not been added because room has been deleted")
+                if "This room has been banned" in str(response['detail']):
+
+                    risposta(
+                        chatid, username +
+                        " has not been added because has been banned")
+                    print(username,
+                          "has not been added because has been banned")
+
             else:
                 username_list = []
                 db = sqlite3.connect(bot_path + '/database.db')
