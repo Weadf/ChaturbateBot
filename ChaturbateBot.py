@@ -233,13 +233,16 @@ def telegram_bot():
             return
         try:
             target = "https://en.chaturbate.com/api/chatvideocontext/" + username
+
             req = urllib.request.Request(
                 target, headers={'User-Agent': 'Mozilla/5.0'})
-            html = json.loads(urllib.request.urlopen(req).read())
+
+            html = json.loads(urllib.request.urlopen(req).read()) #server response + json parsing
+
             if ("status" in html):
                 if "401" in str(html['status']) or username == "":
                     if "This room requires a password" in str(
-                            response['detail']):
+                            html['detail']):
                         risposta(
                             chatid, username +
                             " has not been added because it requires a password and cannot be tracked"
@@ -248,7 +251,7 @@ def telegram_bot():
                             username,
                             "has not been added because it requires a password and cannot be tracked"
                         )
-                    if "Room is deleted" in str(response['detail']):
+                    if "Room is deleted" in str(html['detail']):
 
                         risposta(
                             chatid, username +
@@ -257,7 +260,7 @@ def telegram_bot():
                         print(
                             username,
                             "has not been added because room has been deleted")
-                    if "This room has been banned" in str(response['detail']):
+                    if "This room has been banned" in str(html['detail']):
 
                         risposta(
                             chatid, username +
