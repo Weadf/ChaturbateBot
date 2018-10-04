@@ -1,5 +1,5 @@
 requests
-pyTelegramBotApi
+python-telegram-bot
 beautifulsoup4
 sentry-sdk==0.3.4
 requests_futures
