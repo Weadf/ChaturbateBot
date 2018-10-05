@@ -299,8 +299,8 @@ def list_command(bot,update):
                 followed_users,bot)
 
 
-start_handler=CommandHandler('start',start)
-dispatcher.add_handler(start_handler) #indagare sugli alias multipli
+start_handler=CommandHandler(('start','help'),start)
+dispatcher.add_handler(start_handler)
 add_handler=CommandHandler('add',add, pass_args=True)
 dispatcher.add_handler(add_handler)
 remove_handler=CommandHandler('remove',remove, pass_args=True)
