@@ -298,26 +298,6 @@ def list_command(bot,update):
                 chatid, "These are the users you are currently following:\n" +
                 followed_users,bot)
 
-
-start_handler=CommandHandler(('start','help'),start)
-dispatcher.add_handler(start_handler)
-add_handler=CommandHandler('add',add, pass_args=True)
-dispatcher.add_handler(add_handler)
-remove_handler=CommandHandler('remove',remove, pass_args=True)
-dispatcher.add_handler(remove_handler)
-list_handler=CommandHandler('list',list_command)
-dispatcher.add_handler(list_handler)
-
-def telegram_bot():
-
-    while True:
-        try:
-            updater.start_polling()
-        except Exception as e:
-            handle_exception(e)
-
-
-
 def check_online_status():
     global updater
     bot=updater.bot
@@ -415,8 +395,23 @@ def check_online_status():
             except Exception as e:
                 handle_exception(e)
 
+def telegram_bot():
+    
+    while True:
+        try:
+            updater.start_polling()
+        except Exception as e:
+            handle_exception(e)
 
 
+start_handler=CommandHandler(('start','help'),start)
+dispatcher.add_handler(start_handler)
+add_handler=CommandHandler('add',add, pass_args=True)
+dispatcher.add_handler(add_handler)
+remove_handler=CommandHandler('remove',remove, pass_args=True)
+dispatcher.add_handler(remove_handler)
+list_handler=CommandHandler('list',list_command)
+dispatcher.add_handler(list_handler)
 
 
 threads = []
