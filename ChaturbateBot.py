@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import argparse
 import json
+import logging
 import os
 import os.path
 import sqlite3
@@ -10,13 +11,9 @@ import urllib.request
 from concurrent.futures import ThreadPoolExecutor
 
 import telegram
-from telegram.ext import Updater
-from telegram.ext import CommandHandler
-
-
 from requests_futures.sessions import FuturesSession
+from telegram.ext import CommandHandler, Updater
 
-import logging
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
                      level=logging.INFO)
 
