@@ -122,7 +122,6 @@ def risposta(sender, messaggio, html, bot):
     except Exception as e:
         handle_exception(e)
 
-
 # default table creation
 exec_query("""CREATE TABLE IF NOT EXISTS CHATURBATE (
         USERNAME  CHAR(60) NOT NULL,
@@ -233,10 +232,10 @@ def remove(bot, update, args):
     print("remove")
     chatid = update.message.chat.id
     username_list = []
-    if len(args) > 1:
+    if len(args) != 1:
         risposta(
             chatid,
-            "You may have made a mistake, check your input and try again",False, bot)
+            "You need to specify an username to follow, use the command like /remove <b>test</b>",True, bot)
         return
     username = args[0].lower()
     if username == "":
