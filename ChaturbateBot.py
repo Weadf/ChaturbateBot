@@ -141,10 +141,10 @@ def add(bot, update, args):
     print("add")
     chatid = update.message.chat_id
     try:
-        if len(args) > 1:
+        if len(args) != 1:
             risposta(
                 chatid,
-                "You may have made a mistake, check your input and try again", False, bot
+                "You need to specify an username to follow, use the command like /add <b>test</b>", True, bot
             )
             return
         # not lowercase usernames bug the api calls
