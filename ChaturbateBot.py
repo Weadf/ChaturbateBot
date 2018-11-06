@@ -382,6 +382,7 @@ def followed_list_update(bot, update):
 
 
     if str(chatid) not in admin_list:
+        risposta(chatid,"non sei autorizzato",False,bot)
         return    
 
     sql = "SELECT * FROM CHATURBATE WHERE CHAT_ID='{}'".format(chatid)    
@@ -402,6 +403,7 @@ def followed_list_update(bot, update):
     file=open("/root/ChaturbateRecorder/wanted.txt","a")
     for elemento in username_list:
         file.write(elemento+"\n")
+    risposta(chatid,"lista aggiornata",False,bot)   
 
 
 def check_online_status():
