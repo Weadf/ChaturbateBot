@@ -220,8 +220,6 @@ def add(bot, update, args):
                     username_list.append(row[0])
             except Exception as e:
                 handle_exception(e)
-            finally:
-                db.close()
 
             sql = "SELECT * FROM ADMIN"
             try:
@@ -381,8 +379,7 @@ def followed_list_update(bot, update):
             admin_list.append(row[0])
     except Exception as e:
         handle_exception(e)
-    finally:
-        db.close()
+
 
     if chatid not in admin_list:
         return    
