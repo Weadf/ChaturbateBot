@@ -524,7 +524,7 @@ authorize_admin_handler = CommandHandler(
 dispatcher.add_handler(authorize_admin_handler)
 
 followed_list_handler = CommandHandler(
-    'followed_list', followed_list)
+    'followed_list', followed_list_update)
 dispatcher.add_handler(followed_list_handler)
 
 
