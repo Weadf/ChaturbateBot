@@ -175,6 +175,7 @@ def add(bot, update, args):
         response = urllib.request.urlopen(req).read()
         response_json = json.loads(response)  # server response + json parsing
 
+        #check for not existing models and errors
         if ("status" in response_json):
             if "401" in str(response_json['status']) or username == "":
                 if "This room requires a password" in str(
@@ -233,8 +234,11 @@ def add(bot, update, args):
             finally:
                 db.close()
 
+            if chatid in admin_list: 
+                user_limit=0          #admin has power, bitches
+
             # 0 is unlimited usernames
-            if len(username_list) < user_limit or user_limit == 0 or (chatid in admin_list):
+            if len(username_list) < user_limit or user_limit == 0:
                 if username not in username_list:
                     exec_query(
                         "INSERT INTO CHATURBATE VALUES ('{}', '{}', '{}')".
