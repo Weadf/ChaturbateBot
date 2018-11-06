@@ -62,6 +62,12 @@ ap.add_argument(
     type=str,
     default="",
     help="Your sentry personal url")
+ap.add_argument(
+    "--admin-password",
+    required=False,
+    type=str,
+    default="",
+    help="The password for the bot admin commands")
 args = vars(ap.parse_args())
 
 
@@ -74,6 +80,9 @@ sentry_key = args["sentry"]
 http_threads = args["threads"]
 user_limit = args["limit"]
 auto_remove = args["remove"]
+admin_pw = args["admin_password"]
+
+# enable sentry if sentry_key is passed as an argument
 if sentry_key != "":
     import sentry_sdk
     sentry_sdk.init(sentry_key)
@@ -122,17 +131,22 @@ def risposta(sender, messaggio, html, bot):
     except Exception as e:
         handle_exception(e)
 
+
 # default table creation
 exec_query("""CREATE TABLE IF NOT EXISTS CHATURBATE (
         USERNAME  CHAR(60) NOT NULL,
         CHAT_ID  CHAR(100),
         ONLINE CHAR(1))""")
 
+# admin table creation
+exec_query("""CREATE TABLE IF NOT EXISTS ADMIN (
+        CHAT_ID  CHAR(100))""")
+
 
 def start(bot, update):
     risposta(
         update.message.chat.id,
-        "/add username to add an username to check \n/remove username to remove an username\n(you can use /remove <b>all</b> to remove all models at once) \n/list to see which users you are currently following",True, bot
+        "/add username to add an username to check \n/remove username to remove an username\n(you can use /remove <b>all</b> to remove all models at once) \n/list to see which users you are currently following", True, bot
     )
 
 
@@ -177,7 +191,7 @@ def add(bot, update, args):
 
                     risposta(
                         chatid, username +
-                        " has not been added because room has been deleted",False, bot
+                        " has not been added because room has been deleted", False, bot
                     )
                     print(
                         username,
@@ -186,14 +200,16 @@ def add(bot, update, args):
 
                     risposta(
                         chatid, username +
-                        " has not been added because has been banned",False, bot)
+                        " has not been added because has been banned", False, bot)
                     print(username,
                           "has not been added because has been banned")
 
         else:
             username_list = []
+            admin_list = []
             db = sqlite3.connect(bot_path + '/database.db')
             cursor = db.cursor()
+
             sql = "SELECT * FROM CHATURBATE WHERE CHAT_ID='{}'".format(
                 chatid)
             try:
@@ -205,26 +221,38 @@ def add(bot, update, args):
                 handle_exception(e)
             finally:
                 db.close()
-            if len(
-                    username_list
-            ) < user_limit or user_limit == 0:  # 0 is unlimited usernames
+
+            sql = "SELECT * FROM ADMIN"
+            try:
+                cursor.execute(sql)
+                results = cursor.fetchall()
+                for row in results:
+                    admin_list.append(row[0])
+            except Exception as e:
+                handle_exception(e)
+            finally:
+                db.close()
+
+            # 0 is unlimited usernames
+            if len(username_list) < user_limit or user_limit == 0 or (chatid in admin_list):
                 if username not in username_list:
                     exec_query(
                         "INSERT INTO CHATURBATE VALUES ('{}', '{}', '{}')".
                         format(username, chatid, "F"))
-                    risposta(chatid, username + " has been added",False, bot)
+                    risposta(chatid, username + " has been added", False, bot)
                 else:
-                    risposta(chatid, username + " has already been added",False, bot)
+                    risposta(chatid, username +
+                             " has already been added", False, bot)
             else:
                 risposta(
                     chatid,
                     "You have reached your maximum number of permitted followed models, which is "
-                    + str(user_limit),False, bot)
+                    + str(user_limit), False, bot)
     except Exception as e:
         handle_exception(e)
         risposta(
             chatid, username +
-            " was not added because it doesn't exist or it has been banned",False, bot
+            " was not added because it doesn't exist or it has been banned", False, bot
         )
 
 
@@ -235,13 +263,13 @@ def remove(bot, update, args):
     if len(args) != 1:
         risposta(
             chatid,
-            "You need to specify an username to follow, use the command like /remove <b>test</b>",True, bot)
+            "You need to specify an username to follow, use the command like /remove <b>test</b>", True, bot)
         return
     username = args[0].lower()
     if username == "":
         risposta(
             chatid,
-            "The username you tried to remove doesn't exist or there has been an error",False, bot
+            "The username you tried to remove doesn't exist or there has been an error", False, bot
         )
         return
 
@@ -262,18 +290,18 @@ def remove(bot, update, args):
     if username == "all":
         exec_query(
             "DELETE FROM CHATURBATE WHERE CHAT_ID='{}'".format(chatid))
-        risposta(chatid, "All usernames have been removed",False, bot)
+        risposta(chatid, "All usernames have been removed", False, bot)
 
     elif username in username_list:  # this could have a better implementation but it works
         exec_query(
             "DELETE FROM CHATURBATE WHERE USERNAME='{}' AND CHAT_ID='{}'".
             format(username, chatid))
-        risposta(chatid, username + " has been removed",False, bot)
+        risposta(chatid, username + " has been removed", False, bot)
 
     else:
         risposta(
             chatid,
-            "You aren't following the username you have tried to remove",False, bot)
+            "You aren't following the username you have tried to remove", False, bot)
 
 
 def list_command(bot, update):
@@ -303,11 +331,73 @@ def list_command(bot, update):
     finally:
         db.close()
     if followed_users == "":
-        risposta(chatid, "You aren't following any user",False, bot)
+        risposta(chatid, "You aren't following any user", False, bot)
     else:
         risposta(
             chatid, "These are the users you are currently following:\n" +
-            followed_users,True, bot)
+            followed_users, True, bot)
+
+
+def authorize_admin(bot, update, args):
+    # very barebone, it inserts multiple times if you authorize multiple times
+    print("admin-auth")
+    chatid = update.message.chat_id
+    if len(args) != 1:
+        risposta(
+            chatid,
+            "You need to specify the admin password, use the command like /authorize_admin <b>password</b>", True, bot
+        )
+        return
+    elif admin_pw == "":
+        risposta(
+            chatid,
+            "The admin is disabled, check your telegram bot configuration", False, bot
+        )
+        return
+    if args[0] == admin_pw:
+        exec_query("""INSERT INTO ADMIN VALUES ({})""".format(chatid))
+        risposta(chatid, "Admin abilitato", False, bot)
+    else:
+        risposta(chatid, "la password è errata", False, bot)
+
+
+def followed_list_update(bot, update):
+    chatid = update.message.chat.id
+    username_list=[]
+    admin_list = []
+
+    db = sqlite3.connect(bot_path + '/database.db')
+    cursor = db.cursor()
+
+    sql = "SELECT * FROM ADMIN"
+    try:
+        cursor.execute(sql)
+        results = cursor.fetchall()
+        for row in results:
+            admin_list.append(row[0])
+    except Exception as e:
+        handle_exception(e)
+    finally:
+        db.close()
+
+    sql = "SELECT * FROM CHATURBATE WHERE CHAT_ID='{}'".format(chatid)    
+    try:
+        cursor.execute(sql)
+        results = cursor.fetchall()
+        for row in results:
+            username_list.append(row[0])
+    except Exception as e:
+        handle_exception(e)
+
+    finally:
+        db.close()
+
+    file = open("/root/ChaturbateRecorder/wanted.txt","w")
+    file.write("")
+    file.close
+    file=open("/root/ChaturbateRecorder/wanted.txt","a")
+    for elemento in username_list:
+        file.write(elemento+"\n")
 
 
 def check_online_status():
@@ -357,12 +447,12 @@ def check_online_status():
                                 "UPDATE CHATURBATE SET ONLINE='{}' WHERE USERNAME='{}' AND CHAT_ID='{}'"
                                 .format("F", username_list[x], chatid_list[x]))
                             risposta(chatid_list[x],
-                                     username_list[x] + " is now offline",False, bot)
+                                     username_list[x] + " is now offline", False, bot)
                     elif (online_list[x] == "F"):
                         risposta(
                             chatid_list[x], username_list[x] +
                             " is now online! You can watch the live here: http://en.chaturbate.com/"
-                            + username_list[x],False, bot)
+                            + username_list[x], False, bot)
                         exec_query(
                             "UPDATE CHATURBATE SET ONLINE='{}' WHERE USERNAME='{}' AND CHAT_ID='{}'"
                             .format("T", username_list[x], chatid_list[x]))
@@ -376,7 +466,7 @@ def check_online_status():
                                 format(username_list[x]))
                             risposta(
                                 chatid_list[x], username_list[x] +
-                                " has been removed because it requires a password and cannot be tracked",False, bot
+                                " has been removed because it requires a password and cannot be tracked", False, bot
                             )
                             print(
                                 username_list[x],
@@ -388,7 +478,7 @@ def check_online_status():
                                 format(username_list[x]))
                             risposta(
                                 chatid_list[x], username_list[x] +
-                                " has been removed because room has been deleted",False, bot
+                                " has been removed because room has been deleted", False, bot
                             )
                             print(
                                 username_list[x],
@@ -401,7 +491,7 @@ def check_online_status():
                                 format(username_list[x]))
                             risposta(
                                 chatid_list[x], username_list[x] +
-                                " has been removed because has been banned",False, bot)
+                                " has been removed because has been banned", False, bot)
                             print(username_list[x],
                                   "has been removed because has been banned")
             except Exception as e:
@@ -419,12 +509,23 @@ def telegram_bot():
 
 start_handler = CommandHandler(('start', 'help'), start)
 dispatcher.add_handler(start_handler)
+
 add_handler = CommandHandler('add', add, pass_args=True)
 dispatcher.add_handler(add_handler)
+
 remove_handler = CommandHandler('remove', remove, pass_args=True)
 dispatcher.add_handler(remove_handler)
+
 list_handler = CommandHandler('list', list_command)
 dispatcher.add_handler(list_handler)
+
+authorize_admin_handler = CommandHandler(
+    'authorize_admin', authorize_admin, pass_args=True)
+dispatcher.add_handler(authorize_admin_handler)
+
+followed_list_handler = CommandHandler(
+    'followed_list', followed_list)
+dispatcher.add_handler(followed_list_handler)
 
 
 threads = []
