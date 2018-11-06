@@ -380,6 +380,9 @@ def followed_list_update(bot, update):
     finally:
         db.close()
 
+    if chatid not in admin_list:
+        return    
+
     sql = "SELECT * FROM CHATURBATE WHERE CHAT_ID='{}'".format(chatid)    
     try:
         cursor.execute(sql)
