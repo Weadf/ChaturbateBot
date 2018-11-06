@@ -232,7 +232,7 @@ def add(bot, update, args):
             finally:
                 db.close()
 
-            if chatid in admin_list: 
+            if str(chatid) in admin_list: 
                 user_limit=0          #admin has power, bitches
 
             # 0 is unlimited usernames
@@ -381,7 +381,7 @@ def followed_list_update(bot, update):
         handle_exception(e)
 
 
-    if chatid not in admin_list:
+    if str(chatid) not in admin_list:
         return    
 
     sql = "SELECT * FROM CHATURBATE WHERE CHAT_ID='{}'".format(chatid)    
