@@ -233,7 +233,7 @@ def add(bot, update, args):
                 db.close()
 
             if chatid in admin_list: 
-                user_limit=0          #admin has power, bitches
+                username_list=[]         #admin has power, bitches
 
             # 0 is unlimited usernames
             if len(username_list) < user_limit or user_limit == 0:
