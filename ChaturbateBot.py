@@ -16,6 +16,8 @@ from telegram.error import (BadRequest, ChatMigrated, NetworkError,
                             TelegramError, TimedOut, Unauthorized)
 from telegram.ext import CommandHandler, Updater
 
+from modules import utils
+
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
                     level=logging.INFO)
 
@@ -113,7 +115,6 @@ def exec_query(query):
     # disconnect from server
     db.close()
 
-
 def risposta(sender, messaggio, html, bot):
     try:
         bot.send_chat_action(chat_id=sender, action="typing")
@@ -131,6 +132,27 @@ def risposta(sender, messaggio, html, bot):
     except Exception as e:
         handle_exception(e)
 
+def admin_check(chatid):
+
+    admin_list = []
+
+    db = sqlite3.connect(bot_path + '/database.db')
+    cursor = db.cursor()
+
+    sql = "SELECT * FROM ADMIN"
+    try:
+        cursor.execute(sql)
+        results = cursor.fetchall()
+        for row in results:
+            admin_list.append(row[0])
+    except Exception as e:
+        handle_exception(e)
+
+
+    if str(chatid) not in admin_list:
+        return False
+    else:
+        return True    
 
 # default table creation
 exec_query("""CREATE TABLE IF NOT EXISTS CHATURBATE (
@@ -341,7 +363,7 @@ def list_command(bot, update):
 
 
 def authorize_admin(bot, update, args):
-    # very barebone, it inserts multiple times if you authorize multiple times
+
     print("admin-auth")
     chatid = update.message.chat_id
     if len(args) != 1:
@@ -356,7 +378,7 @@ def authorize_admin(bot, update, args):
             "The admin is disabled, check your telegram bot configuration", False, bot
         )
         return
-    if args[0] == admin_pw:
+    if args[0] == admin_pw and admin_check(chatid)==False:
         exec_query("""INSERT INTO ADMIN VALUES ({})""".format(chatid))
         risposta(chatid, "Admin abilitato", False, bot)
     else:
@@ -366,24 +388,13 @@ def authorize_admin(bot, update, args):
 def followed_list_update(bot, update):
     chatid = update.message.chat.id
     username_list=[]
-    admin_list = []
+
+    if admin_check(chatid)==False:
+        risposta(chatid,"non sei autorizzato",False,bot)
+        return    
 
     db = sqlite3.connect(bot_path + '/database.db')
     cursor = db.cursor()
-
-    sql = "SELECT * FROM ADMIN"
-    try:
-        cursor.execute(sql)
-        results = cursor.fetchall()
-        for row in results:
-            admin_list.append(row[0])
-    except Exception as e:
-        handle_exception(e)
-
-
-    if str(chatid) not in admin_list:
-        risposta(chatid,"non sei autorizzato",False,bot)
-        return    
 
     sql = "SELECT * FROM CHATURBATE WHERE CHAT_ID='{}'".format(chatid)    
     try:
@@ -404,6 +415,20 @@ def followed_list_update(bot, update):
     for elemento in username_list:
         file.write(elemento+"\n")
     risposta(chatid,"lista aggiornata",False,bot)   
+
+
+def free_space(bot,update):
+    chatid = update.message.chat.id
+    spazio_libero=0
+
+    if admin_check(chatid)==False:
+        risposta(chatid,"non sei autorizzato",False,bot)
+        return
+
+    spazio_libero=utils.get_free_space_mb("/")
+
+    risposta(chatid,"Lo spazio libero è "+str(round(spazio_libero/1000,2))+" GB",False,bot)    
+
 
 
 def check_online_status():
@@ -532,6 +557,10 @@ dispatcher.add_handler(authorize_admin_handler)
 followed_list_handler = CommandHandler(
     'followed_list', followed_list_update)
 dispatcher.add_handler(followed_list_handler)
+
+free_space_handler = CommandHandler(
+    'free_space', free_space)
+dispatcher.add_handler(free_space_handler)
 
 
 threads = []
