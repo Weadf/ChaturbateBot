@@ -8,6 +8,7 @@ import sqlite3
 import threading
 import time
 import urllib.request
+import shutil
 from concurrent.futures import ThreadPoolExecutor
 
 import telegram
@@ -419,7 +420,6 @@ def followed_list_update(bot, update):
 
 def free_space(bot,update):
     chatid = update.message.chat.id
-    spazio_libero=0
 
     if admin_check(chatid)==False:
         risposta(chatid,"non sei autorizzato",False,bot)
@@ -429,7 +429,7 @@ def free_space(bot,update):
     spazio_libero=round(spazio_libero/1000,2)
     spazio_totale=utils.get_total_space_gb("/")
 
-    risposta(chatid,"Lo spazio libero è "+str(spazio_libero)+" GB, hai utilizzato il <b>"+str(round((spazio_totale-spazio_libero)/spazio_totale*100))+"%</b>",True,bot)    
+    risposta(chatid,"Lo spazio libero è "+str(spazio_libero)+" GB, hai utilizzato il <b>"+str(round((spazio_totale-spazio_libero)/spazio_totale*100),2)+"%</b>",True,bot)    
 
 
 
@@ -539,6 +539,24 @@ def telegram_bot():
         except Exception as e:
             handle_exception(e)
 
+def space_status():
+    while(1):
+     spazio_libero=utils.get_free_space_mb("/")
+     spazio_libero=round(spazio_libero/1000,2)
+     spazio_totale=utils.get_total_space_gb("/")
+     if round((spazio_totale-spazio_libero)/spazio_totale*100)>=95:
+         os.system("systemctl stop ChaturbateRecorder")
+         os.system("systemctl stop ChaturbateFileUploader")
+         try:
+          shutil.rmtree("/root/Registrazioni/upload")
+         except Exception as e:
+             handle_exception(e) 
+         os.system("systemctl start ChaturbateFileUploader")
+         time.sleep(300)
+         os.system("systemctl start ChaturbateRecorder")
+
+        
+
 
 start_handler = CommandHandler(('start', 'help'), start)
 dispatcher.add_handler(start_handler)
@@ -567,8 +585,11 @@ dispatcher.add_handler(free_space_handler)
 
 threads = []
 check_online_status_thread = threading.Thread(target=check_online_status)
+space_status_thread = threading.Thread(target=space_status,daemon=True)
 telegram_bot_thread = threading.Thread(target=telegram_bot)
 threads.append(check_online_status_thread)
 threads.append(telegram_bot_thread)
+threads.append(space_status_thread)
 check_online_status_thread.start()
 telegram_bot_thread.start()
+space_status_thread.start()
