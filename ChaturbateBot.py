@@ -543,6 +543,8 @@ def telegram_bot():
 
 
 def space_status():
+    global updater
+    bot = updater.bot
     while(1):
         admin_list = []
 
