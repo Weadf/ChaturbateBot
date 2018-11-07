@@ -426,8 +426,10 @@ def free_space(bot,update):
         return
 
     spazio_libero=utils.get_free_space_mb("/")
+    spazio_libero=round(spazio_libero/1000,2)
+    spazio_totale=utils.get_total_space_gb("/")
 
-    risposta(chatid,"Lo spazio libero è "+str(round(spazio_libero/1000,2))+" GB",False,bot)    
+    risposta(chatid,"Lo spazio libero è "+str(spazio_libero)+" GB, hai utilizzato il <b>"+str(round((spazio_totale-spazio_libero)/spazio_totale*100))+"%</b>",True,bot)    
 
 
 
