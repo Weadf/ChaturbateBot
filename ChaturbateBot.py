@@ -432,7 +432,7 @@ def free_space(bot, update):
     spazio_totale = utils.get_total_space_gb("/")
 
     risposta(chatid, "Lo spazio libero è "+str(spazio_libero)+" GB, hai utilizzato il <b>" +
-             str(round((spazio_totale-spazio_libero)/spazio_totale*100), 2)+"%</b>", True, bot)
+             str(round((spazio_totale-spazio_libero)/spazio_totale*100, 2))+"%</b>", True, bot)
 
 
 def check_online_status():
@@ -563,9 +563,12 @@ def space_status():
 
         if round((spazio_totale-spazio_libero)/spazio_totale*100) >= 95:
             for chatid in admin_list:
-                risposta(chatid,"ATTENZIONE, ATTIVATA PROCEDURA DI EMERGENZA DI POCO SPAZIO!!!(riceverai altri due avvisi)",False,bot)
-                risposta(chatid,"ATTENZIONE, ATTIVATA PROCEDURA DI EMERGENZA DI POCO SPAZIO!!!(riceverai un altro avviso)",False,bot)
-                risposta(chatid,"ATTENZIONE, ATTIVATA PROCEDURA DI EMERGENZA DI POCO SPAZIO!!!(ultimo avviso)",False,bot)
+                risposta(
+                    chatid, "ATTENZIONE, ATTIVATA PROCEDURA DI EMERGENZA DI POCO SPAZIO!!!(riceverai altri due avvisi)", False, bot)
+                risposta(
+                    chatid, "ATTENZIONE, ATTIVATA PROCEDURA DI EMERGENZA DI POCO SPAZIO!!!(riceverai un altro avviso)", False, bot)
+                risposta(
+                    chatid, "ATTENZIONE, ATTIVATA PROCEDURA DI EMERGENZA DI POCO SPAZIO!!!(ultimo avviso)", False, bot)
             os.system("systemctl stop ChaturbateRecorder")
             os.system("systemctl stop ChaturbateFileUploader")
             try:
