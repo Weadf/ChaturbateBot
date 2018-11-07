@@ -4,11 +4,11 @@ import json
 import logging
 import os
 import os.path
+import shutil
 import sqlite3
 import threading
 import time
 import urllib.request
-import shutil
 from concurrent.futures import ThreadPoolExecutor
 
 import telegram
@@ -116,6 +116,7 @@ def exec_query(query):
     # disconnect from server
     db.close()
 
+
 def risposta(sender, messaggio, html, bot):
     try:
         bot.send_chat_action(chat_id=sender, action="typing")
@@ -133,6 +134,7 @@ def risposta(sender, messaggio, html, bot):
     except Exception as e:
         handle_exception(e)
 
+
 def admin_check(chatid):
 
     admin_list = []
@@ -149,11 +151,11 @@ def admin_check(chatid):
     except Exception as e:
         handle_exception(e)
 
-
     if str(chatid) not in admin_list:
         return False
     else:
-        return True    
+        return True
+
 
 # default table creation
 exec_query("""CREATE TABLE IF NOT EXISTS CHATURBATE (
@@ -198,7 +200,7 @@ def add(bot, update, args):
         response = urllib.request.urlopen(req).read()
         response_json = json.loads(response)  # server response + json parsing
 
-        #check for not existing models and errors
+        # check for not existing models and errors
         if ("status" in response_json):
             if "401" in str(response_json['status']) or username == "":
                 if "This room requires a password" in str(
@@ -255,8 +257,8 @@ def add(bot, update, args):
             finally:
                 db.close()
 
-            if str(chatid) in admin_list: 
-                user_limit=0          #admin has power, bitches
+            if str(chatid) in admin_list:
+                user_limit = 0  # admin has power, bitches
 
             # 0 is unlimited usernames
             if len(username_list) < user_limit or user_limit == 0:
@@ -379,7 +381,7 @@ def authorize_admin(bot, update, args):
             "The admin is disabled, check your telegram bot configuration", False, bot
         )
         return
-    if args[0] == admin_pw and admin_check(chatid)==False:
+    if args[0] == admin_pw and admin_check(chatid) == False:
         exec_query("""INSERT INTO ADMIN VALUES ({})""".format(chatid))
         risposta(chatid, "Admin abilitato", False, bot)
     else:
@@ -388,16 +390,16 @@ def authorize_admin(bot, update, args):
 
 def followed_list_update(bot, update):
     chatid = update.message.chat.id
-    username_list=[]
+    username_list = []
 
-    if admin_check(chatid)==False:
-        risposta(chatid,"non sei autorizzato",False,bot)
-        return    
+    if admin_check(chatid) == False:
+        risposta(chatid, "non sei autorizzato", False, bot)
+        return
 
     db = sqlite3.connect(bot_path + '/database.db')
     cursor = db.cursor()
 
-    sql = "SELECT * FROM CHATURBATE WHERE CHAT_ID='{}'".format(chatid)    
+    sql = "SELECT * FROM CHATURBATE WHERE CHAT_ID='{}'".format(chatid)
     try:
         cursor.execute(sql)
         results = cursor.fetchall()
@@ -409,28 +411,28 @@ def followed_list_update(bot, update):
     finally:
         db.close()
 
-    file = open("/root/ChaturbateRecorder/wanted.txt","w")
+    file = open("/root/ChaturbateRecorder/wanted.txt", "w")
     file.write("")
     file.close
-    file=open("/root/ChaturbateRecorder/wanted.txt","a")
+    file = open("/root/ChaturbateRecorder/wanted.txt", "a")
     for elemento in username_list:
         file.write(elemento+"\n")
-    risposta(chatid,"lista aggiornata",False,bot)   
+    risposta(chatid, "lista aggiornata", False, bot)
 
 
-def free_space(bot,update):
+def free_space(bot, update):
     chatid = update.message.chat.id
 
-    if admin_check(chatid)==False:
-        risposta(chatid,"non sei autorizzato",False,bot)
+    if admin_check(chatid) == False:
+        risposta(chatid, "non sei autorizzato", False, bot)
         return
 
-    spazio_libero=utils.get_free_space_mb("/")
-    spazio_libero=round(spazio_libero/1000,2)
-    spazio_totale=utils.get_total_space_gb("/")
+    spazio_libero = utils.get_free_space_mb("/")
+    spazio_libero = round(spazio_libero/1000, 2)
+    spazio_totale = utils.get_total_space_gb("/")
 
-    risposta(chatid,"Lo spazio libero è "+str(spazio_libero)+" GB, hai utilizzato il <b>"+str(round((spazio_totale-spazio_libero)/spazio_totale*100),2)+"%</b>",True,bot)    
-
+    risposta(chatid, "Lo spazio libero è "+str(spazio_libero)+" GB, hai utilizzato il <b>" +
+             str(round((spazio_totale-spazio_libero)/spazio_totale*100), 2)+"%</b>", True, bot)
 
 
 def check_online_status():
@@ -539,23 +541,40 @@ def telegram_bot():
         except Exception as e:
             handle_exception(e)
 
+
 def space_status():
     while(1):
-     spazio_libero=utils.get_free_space_mb("/")
-     spazio_libero=round(spazio_libero/1000,2)
-     spazio_totale=utils.get_total_space_gb("/")
-     if round((spazio_totale-spazio_libero)/spazio_totale*100)>=95:
-         os.system("systemctl stop ChaturbateRecorder")
-         os.system("systemctl stop ChaturbateFileUploader")
-         try:
-          shutil.rmtree("/root/Registrazioni/upload")
-         except Exception as e:
-             handle_exception(e) 
-         os.system("systemctl start ChaturbateFileUploader")
-         time.sleep(300)
-         os.system("systemctl start ChaturbateRecorder")
+        admin_list = []
 
-        
+        db = sqlite3.connect(bot_path + '/database.db')
+        cursor = db.cursor()
+        sql = "SELECT * FROM ADMIN"
+        try:
+            cursor.execute(sql)
+            results = cursor.fetchall()
+            for row in results:
+                admin_list.append(row[0])
+        except Exception as e:
+            handle_exception(e)
+
+        spazio_libero = utils.get_free_space_mb("/")
+        spazio_libero = round(spazio_libero/1000, 2)
+        spazio_totale = utils.get_total_space_gb("/")
+
+        if round((spazio_totale-spazio_libero)/spazio_totale*100) >= 95:
+            for chatid in admin_list:
+                risposta(chatid,"ATTENZIONE, ATTIVATA PROCEDURA DI EMERGENZA DI POCO SPAZIO!!!(riceverai altri due avvisi)",False,bot)
+                risposta(chatid,"ATTENZIONE, ATTIVATA PROCEDURA DI EMERGENZA DI POCO SPAZIO!!!(riceverai un altro avviso)",False,bot)
+                risposta(chatid,"ATTENZIONE, ATTIVATA PROCEDURA DI EMERGENZA DI POCO SPAZIO!!!(ultimo avviso)",False,bot)
+            os.system("systemctl stop ChaturbateRecorder")
+            os.system("systemctl stop ChaturbateFileUploader")
+            try:
+                shutil.rmtree("/root/Registrazioni/upload")
+            except Exception as e:
+                handle_exception(e)
+            os.system("systemctl start ChaturbateFileUploader")
+            time.sleep(300)
+            os.system("systemctl start ChaturbateRecorder")
 
 
 start_handler = CommandHandler(('start', 'help'), start)
@@ -585,7 +604,7 @@ dispatcher.add_handler(free_space_handler)
 
 threads = []
 check_online_status_thread = threading.Thread(target=check_online_status)
-space_status_thread = threading.Thread(target=space_status,daemon=True)
+space_status_thread = threading.Thread(target=space_status, daemon=True)
 telegram_bot_thread = threading.Thread(target=telegram_bot)
 threads.append(check_online_status_thread)
 threads.append(telegram_bot_thread)
