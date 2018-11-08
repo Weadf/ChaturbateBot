@@ -259,11 +259,13 @@ def add(bot, update, args):
             finally:
                 db.close()
 
+            user_limit_local = user_limit
+
             if str(chatid) in admin_list:
-                user_limit = 0  # admin has power, bitches
+                user_limit_local = 0  # admin has power, bitches
 
             # 0 is unlimited usernames
-            if len(username_list) < user_limit or user_limit == 0:
+            if len(username_list) < user_limit_local or user_limit_local == 0:
                 if username not in username_list:
                     exec_query(
                         "INSERT INTO CHATURBATE VALUES ('{}', '{}', '{}')".
@@ -276,7 +278,7 @@ def add(bot, update, args):
                 risposta(
                     chatid,
                     "You have reached your maximum number of permitted followed models, which is "
-                    + str(user_limit), False, bot)
+                    + str(user_limit_local), False, bot)
     except Exception as e:
         handle_exception(e)
         risposta(
@@ -442,7 +444,7 @@ def free_space(bot, update):
 
 def send_message_to_everyone(bot, update, args):
     chatid = update.message.chat.id
-    message=""
+    message = ""
 
     if admin_check(chatid) == False:
         risposta(chatid, "non sei autorizzato", False, bot)
@@ -464,12 +466,11 @@ def send_message_to_everyone(bot, update, args):
         db.close()
 
     for word in args:
-        message+=word+" "
-    message=message[:-1]
+        message += word+" "
+    message = message[:-1]
 
     for x in chatid_list:
-        risposta(x,message,False,bot)     
-
+        risposta(x, message, False, bot)
 
 
 # end of admin functions
@@ -649,7 +650,7 @@ free_space_handler = CommandHandler(
 dispatcher.add_handler(free_space_handler)
 
 send_message_to_everyone_handler = CommandHandler(
-    'send_message_to_everyone', send_message_to_everyone,pass_args=True)
+    'send_message_to_everyone', send_message_to_everyone, pass_args=True)
 dispatcher.add_handler(send_message_to_everyone_handler)
 
 
