@@ -450,14 +450,14 @@ def send_message_to_everyone(bot, update, args):
 
     chatid_list = []
 
-    sql = "SELECT * FROM CHATURBATE"
+    sql = "SELECT DISTINCT CHAT_ID FROM CHATURBATE"
     try:
         db = sqlite3.connect(bot_path + '/database.db')
         cursor = db.cursor()
         cursor.execute(sql)
         results = cursor.fetchall()
         for row in results:
-            chatid_list.append(row[1])
+            chatid_list.append(row[0])
     except Exception as e:
         handle_exception(e)
     finally:
