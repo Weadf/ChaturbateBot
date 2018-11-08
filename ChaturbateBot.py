@@ -167,6 +167,8 @@ exec_query("""CREATE TABLE IF NOT EXISTS CHATURBATE (
 exec_query("""CREATE TABLE IF NOT EXISTS ADMIN (
         CHAT_ID  CHAR(100))""")
 
+# normal functions
+
 
 def start(bot, update):
     risposta(
@@ -364,7 +366,10 @@ def list_command(bot, update):
             chatid, "These are the users you are currently following:\n" +
             followed_users, True, bot)
 
+# end of normal funcionts
 
+
+# admin functions
 def authorize_admin(bot, update, args):
 
     print("admin-auth")
@@ -434,6 +439,43 @@ def free_space(bot, update):
     risposta(chatid, "Lo spazio libero è "+str(spazio_libero)+" GB, hai utilizzato il <b>" +
              str(round((spazio_totale-spazio_libero)/spazio_totale*100, 2))+"%</b>", True, bot)
 
+
+def send_message_to_everyone(bot, update, args):
+    chatid = update.message.chat.id
+    message=""
+
+    if admin_check(chatid) == False:
+        risposta(chatid, "non sei autorizzato", False, bot)
+        return
+
+    chatid_list = []
+
+    sql = "SELECT * FROM CHATURBATE"
+    try:
+        db = sqlite3.connect(bot_path + '/database.db')
+        cursor = db.cursor()
+        cursor.execute(sql)
+        results = cursor.fetchall()
+        for row in results:
+            chatid_list.append(row[1])
+    except Exception as e:
+        handle_exception(e)
+    finally:
+        db.close()
+
+    for word in args:
+        message+=word+" "
+    message=message[:-1]
+
+    for x in chatid_list:
+        risposta(x,message,False,bot)     
+
+
+
+# end of admin functions
+
+
+# threads
 
 def check_online_status():
     global updater
@@ -605,6 +647,10 @@ dispatcher.add_handler(followed_list_handler)
 free_space_handler = CommandHandler(
     'free_space', free_space)
 dispatcher.add_handler(free_space_handler)
+
+send_message_to_everyone_handler = CommandHandler(
+    'send_message_to_everyone', send_message_to_everyone,pass_args=True)
+dispatcher.add_handler(send_message_to_everyone_handler)
 
 
 threads = []
