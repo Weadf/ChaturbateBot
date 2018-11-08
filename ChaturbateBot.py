@@ -71,18 +71,19 @@ ap.add_argument(
     type=str,
     default="",
     help="The password for the bot admin commands")
-program_arguments = vars(ap.parse_args())
+args = vars(ap.parse_args())
 
-updater = Updater(token=program_arguments["key"])
+
+updater = Updater(token=args["key"])
 dispatcher = updater.dispatcher
 
-bot_path = program_arguments["working_folder"]
-wait_time = program_arguments["time"]
-sentry_key = program_arguments["sentry"]
-http_threads = program_arguments["threads"]
-user_limit = program_arguments["limit"]
-auto_remove = program_arguments["remove"]
-admin_pw = program_arguments["admin_password"]
+bot_path = args["working_folder"]
+wait_time = args["time"]
+sentry_key = args["sentry"]
+http_threads = args["threads"]
+user_limit = args["limit"]
+auto_remove = args["remove"]
+admin_pw = args["admin_password"]
 
 # enable sentry if sentry_key is passed as an argument
 if sentry_key != "":
@@ -259,10 +260,10 @@ def add(bot, update, args):
                 db.close()
 
             if str(chatid) in admin_list:
-                program_arguments["limit"] = 0  # admin has power, bitches
+                user_limit = 0  # admin has power, bitches
 
             # 0 is unlimited usernames
-            if len(username_list) < program_arguments["limit"] or program_arguments["limit"] == 0:
+            if len(username_list) < user_limit or user_limit == 0:
                 if username not in username_list:
                     exec_query(
                         "INSERT INTO CHATURBATE VALUES ('{}', '{}', '{}')".
