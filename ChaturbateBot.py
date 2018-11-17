@@ -17,7 +17,6 @@ from telegram.error import (BadRequest, ChatMigrated, NetworkError,
                             TelegramError, TimedOut, Unauthorized)
 from telegram.ext import CommandHandler, Updater
 
-from modules import utils
 
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
                     level=logging.INFO)
