@@ -562,11 +562,9 @@ dispatcher.add_handler(send_message_to_everyone_handler)
 
 threads = []
 check_online_status_thread = threading.Thread(target=check_online_status)
-
 telegram_bot_thread = threading.Thread(target=telegram_bot)
+
 threads.append(check_online_status_thread)
 threads.append(telegram_bot_thread)
-threads.append(space_status_thread)
 check_online_status_thread.start()
 telegram_bot_thread.start()
-
