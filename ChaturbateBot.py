@@ -395,53 +395,6 @@ def authorize_admin(bot, update, args):
         risposta(chatid, "la password è errata", False, bot)
 
 
-def followed_list_update(bot, update):
-    chatid = update.message.chat.id
-    username_list = []
-
-    if admin_check(chatid) == False:
-        risposta(chatid, "non sei autorizzato", False, bot)
-        return
-
-    db = sqlite3.connect(bot_path + '/database.db')
-    cursor = db.cursor()
-
-    sql = "SELECT * FROM CHATURBATE WHERE CHAT_ID='{}'".format(chatid)
-    try:
-        cursor.execute(sql)
-        results = cursor.fetchall()
-        for row in results:
-            username_list.append(row[0])
-    except Exception as e:
-        handle_exception(e)
-
-    finally:
-        db.close()
-
-    file = open("/root/ChaturbateRecorder/wanted.txt", "w")
-    file.write("")
-    file.close
-    file = open("/root/ChaturbateRecorder/wanted.txt", "a")
-    for elemento in username_list:
-        file.write(elemento+"\n")
-    risposta(chatid, "lista aggiornata", False, bot)
-
-
-def free_space(bot, update):
-    chatid = update.message.chat.id
-
-    if admin_check(chatid) == False:
-        risposta(chatid, "non sei autorizzato", False, bot)
-        return
-
-    spazio_libero = utils.get_free_space_mb("/")
-    spazio_libero = round(spazio_libero/1000, 2)
-    spazio_totale = utils.get_total_space_gb("/")
-
-    risposta(chatid, "Lo spazio libero è "+str(spazio_libero)+" GB, hai utilizzato il <b>" +
-             str(round((spazio_totale-spazio_libero)/spazio_totale*100, 2))+"%</b>", True, bot)
-
-
 def send_message_to_everyone(bot, update, args):
     chatid = update.message.chat.id
     message = ""
@@ -585,45 +538,6 @@ def telegram_bot():
             handle_exception(e)
 
 
-def space_status():
-    global updater
-    bot = updater.bot
-    while(1):
-        admin_list = []
-
-        db = sqlite3.connect(bot_path + '/database.db')
-        cursor = db.cursor()
-        sql = "SELECT * FROM ADMIN"
-        try:
-            cursor.execute(sql)
-            results = cursor.fetchall()
-            for row in results:
-                admin_list.append(row[0])
-        except Exception as e:
-            handle_exception(e)
-
-        spazio_libero = utils.get_free_space_mb("/")
-        spazio_libero = round(spazio_libero/1000, 2)
-        spazio_totale = utils.get_total_space_gb("/")
-
-        if round((spazio_totale-spazio_libero)/spazio_totale*100) >= 95:
-            for chatid in admin_list:
-                risposta(
-                    chatid, "ATTENZIONE, ATTIVATA PROCEDURA DI EMERGENZA DI POCO SPAZIO!!!(riceverai altri due avvisi)", False, bot)
-                risposta(
-                    chatid, "ATTENZIONE, ATTIVATA PROCEDURA DI EMERGENZA DI POCO SPAZIO!!!(riceverai un altro avviso)", False, bot)
-                risposta(
-                    chatid, "ATTENZIONE, ATTIVATA PROCEDURA DI EMERGENZA DI POCO SPAZIO!!!(ultimo avviso)", False, bot)
-            os.system("systemctl stop ChaturbateRecorder")
-            os.system("systemctl stop ChaturbateFileUploader")
-            try:
-                shutil.rmtree("/root/Registrazioni/upload")
-            except Exception as e:
-                handle_exception(e)
-            os.system("systemctl start ChaturbateFileUploader")
-            time.sleep(300)
-            os.system("systemctl start ChaturbateRecorder")
-
 
 start_handler = CommandHandler(('start', 'help'), start)
 dispatcher.add_handler(start_handler)
@@ -641,13 +555,6 @@ authorize_admin_handler = CommandHandler(
     'authorize_admin', authorize_admin, pass_args=True)
 dispatcher.add_handler(authorize_admin_handler)
 
-followed_list_handler = CommandHandler(
-    'followed_list', followed_list_update)
-dispatcher.add_handler(followed_list_handler)
-
-free_space_handler = CommandHandler(
-    'free_space', free_space)
-dispatcher.add_handler(free_space_handler)
 
 send_message_to_everyone_handler = CommandHandler(
     'send_message_to_everyone', send_message_to_everyone, pass_args=True)
@@ -656,11 +563,11 @@ dispatcher.add_handler(send_message_to_everyone_handler)
 
 threads = []
 check_online_status_thread = threading.Thread(target=check_online_status)
-space_status_thread = threading.Thread(target=space_status, daemon=True)
+
 telegram_bot_thread = threading.Thread(target=telegram_bot)
 threads.append(check_online_status_thread)
 threads.append(telegram_bot_thread)
 threads.append(space_status_thread)
 check_online_status_thread.start()
 telegram_bot_thread.start()
-space_status_thread.start()
+
