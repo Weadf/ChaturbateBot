@@ -5,46 +5,56 @@ ChaturbateBot, written using python3<br>
 You have to install the dipendences using pip by doing <i>pip install -r requirements.txt</i> in order to be able to run this bot<br>
 If you don't want to host it yourself you can use mine here http://t.me/chaturbatealertsbot
 
-usage: ChaturbateBot.py [-h] -k KEY [-f WORKING_FOLDER] [-t TIME] [-threads THREADS] [-l LIMIT] [-r REMOVE] [-sentry SENTRY] [--admin-password ADMIN_PASSWORD]
+usage: ChaturbateBot.py [-h] -k KEY [-f WORKING_FOLDER] [-t TIME]
 
-Optional arguments:
+[-threads THREADS] [-l LIMIT] [-r REMOVE]
 
-\-h, --help show this help message and exit
+[-sentry SENTRY] [--admin-password ADMIN_PASSWORD]
 
-\-k KEY, --key KEY Telegram bot api key. It's required in order to run
+optional arguments:
 
-this bot
+**-h, --help**
 
-\-f WORKING_FOLDER, --working-folder WORKING_FOLDER
+*Show* this help message and exit
 
-Set the bot's working-folder. Default=
+**-k KEY, --key KEY**
 
-ChaturbateBot.py's location
+Telegram bot api key. It's required in order to run this bot
 
-\-t TIME, --time TIME Time wait between every connection made, in seconds.
+**-f WORKING_FOLDER, --working-folder WORKING_FOLDER**
+
+Set the bot's working-folder.
+
+Default= ChaturbateBot.py's location
+
+\-**t TIME, --time TIME**
+
+Time wait between every connection made, in seconds.
 
 Default=0.2
 
-\-threads THREADS The number of multiple http connection opened at the
+**-threads THREADS**
 
-same time to check chaturbate. Default=10
+The number of multiple http connection opened at the same time to check
 
-\-l LIMIT, --limit LIMIT
+chaturbate.
 
-The maximum number of multiple users a person can
+Default=10
 
-follow
+**-l LIMIT, --limit LIMIT**
 
-\-r REMOVE, --remove REMOVE
+The maximum number of multiple users a person can follow
 
-Should the bot remove from the database anyone whom
+**-r REMOVE, --remove REMOVE**
 
-blocks it? default= true
+Should the bot remove from the database anyone whom blocks it?
 
-\-sentry SENTRY Your sentry personal url
+default= true
 
-\--admin-password ADMIN_PASSWORD
+**-sentry SENTRY**
 
-The password for the bot admin commands, disabled by
+Your sentry personal url
 
-default
+**--admin-password ADMIN_PASSWORD**
+
+The password for the bot admin commands, disabled by default
