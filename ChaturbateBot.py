@@ -22,27 +22,27 @@ logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s
 
 ap = argparse.ArgumentParser()
 ap.add_argument(
-    "-k", "--key", required=True, type=str, help="Telegram bot key")
+    "-k", "--key", required=True, type=str, help="Telegram bot api key. It's required in order to run this bot")
 ap.add_argument(
     "-f",
     "--working-folder",
     required=False,
     type=str,
     default=os.getcwd(),
-    help="set the bot's working-folder")
+    help="Set the bot's working-folder. Default= ChaturbateBot.py's location")
 ap.add_argument(
     "-t",
     "--time",
     required=False,
     type=float,
     default=0.2,
-    help="time wait between every connection made, in seconds")
+    help="Time wait between every connection made, in seconds. Default=0.2")
 ap.add_argument(
     "-threads",
     required=False,
     type=int,
     default=10,
-    help="The number of multiple http connection opened at the same to check chaturbate")
+    help="The number of multiple http connection opened at the same time to check chaturbate. Default=10")
 ap.add_argument(
     "-l",
     "--limit",
@@ -56,7 +56,7 @@ ap.add_argument(
     required=False,
     type=bool,
     default=True,
-    help="Should the bot remove from the database anyone whom blocks it?")
+    help="Should the bot remove from the database anyone whom blocks it? default= true")
 ap.add_argument(
     "-sentry",
     required=False,
@@ -68,7 +68,7 @@ ap.add_argument(
     required=False,
     type=str,
     default="",
-    help="The password for the bot admin commands")
+    help="The password for the bot admin commands, disabled by default")
 args = vars(ap.parse_args())
 
 
