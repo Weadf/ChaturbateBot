@@ -99,3 +99,4 @@ ENV/
 .mypy_cache/
 *.db
 .vscode/launch.json
+.pytest_cache/v/cache/nodeids
