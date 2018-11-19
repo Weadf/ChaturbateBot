@@ -4,7 +4,6 @@ import json
 import logging
 import os
 import os.path
-import shutil
 import sqlite3
 import threading
 import time
