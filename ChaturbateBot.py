@@ -369,6 +369,7 @@ def list_command(bot, update):
     chatid = update.message.chat.id
     username_list = []
     online_list = []
+    username_dict={}
     followed_users = ""
     db = sqlite3.connect(bot_path + '/database.db')
     cursor = db.cursor()
@@ -383,9 +384,14 @@ def list_command(bot, update):
     except Exception as e:
         handle_exception(e)
     else:  # else means that the code will get executed if an exception doesn't happen
-        for x in range(0, len(username_list)):
-            followed_users += username_list[x] + ": "
-            if online_list[x] == "T":
+
+        for x in range(0,len(username_list)):
+                username_dict.update({username_list[x]:online_list[x]}) #dictionary with usernames and online_status
+
+
+        for username in sorted(username_dict):
+            followed_users += username + ": "
+            if username_dict[username] == "T":
                 followed_users += "<b>online</b>\n"
             else:
                 followed_users += "offline\n"
