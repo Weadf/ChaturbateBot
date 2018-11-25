@@ -482,6 +482,8 @@ def followed_list_update(bot, update):
 
     finally:
         db.close()
+        
+    username_list.sort()    
 
     file = open("/root/ChaturbateRecorder/wanted.txt", "w")
     file.write("")
