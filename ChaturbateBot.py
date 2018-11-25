@@ -399,7 +399,7 @@ def list_command(bot, update):
         risposta(chatid, "You aren't following any user", bot)
     else:
         risposta(
-            chatid, "These are the users you are currently following:\n" +
+            chatid, "You are currently following these {} users:\n".format(len(username_list)) +
             followed_users, bot, html=True)
 
 # end of normal funcionts
