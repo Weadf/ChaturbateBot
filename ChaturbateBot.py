@@ -129,8 +129,6 @@ def risposta(sender, messaggio, bot, html=False):
 
     html (str): if html markdown should be enabled in the message
 
-    Returns:
-    list: a list of strings representing the header columns
 
     """
 
