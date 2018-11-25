@@ -383,10 +383,6 @@ def list_command(bot, update):
     except Exception as e:
         handle_exception(e)
     else:  # else means that the code will get executed if an exception doesn't happen
-
-        #sorting a->z the array
-        username_list.sort()
-
         for x in range(0, len(username_list)):
             followed_users += username_list[x] + ": "
             if online_list[x] == "T":
