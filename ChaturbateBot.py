@@ -8,6 +8,8 @@ import sqlite3
 import threading
 import time
 import urllib.request
+import requests
+
 from concurrent.futures import ThreadPoolExecutor
 
 import telegram
@@ -233,25 +235,14 @@ def add(bot, update, args):
     try:
         target = "https://en.chaturbate.com/api/chatvideocontext/" + username
 
-        req = urllib.request.Request(
-            target, headers={'User-Agent': 'Mozilla/5.0'})
-
-        response = urllib.request.urlopen(req).read()
-        response_json = json.loads(response)  # server response + json parsing
+        headers = {'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/70.0.3538.110 Safari/537.36',}
+        response = requests.get(target, headers=headers)
+        response_json = json.loads(response.content)  # server response + json parsing
 
         # check for not existing models and errors
-        if ("status" in response_json):
-            if "401" in str(response_json['status']) or username == "":
-                if "This room requires a password" in str(
-                        response_json['detail']):
-                    risposta(
-                        chatid, username +
-                        " has not been added because it requires a password and cannot be tracked", bot
-                    )
-                    print(
-                        username,
-                        "has not been added because it requires a password and cannot be tracked"
-                    )
+        if (("status" in response_json) and ("401" in str(response_json['status'])) and ("This room requires a password" not in str(response_json['detail']))):
+            
+                     
                 if "Room is deleted" in str(response_json['detail']):
 
                     risposta(
@@ -307,7 +298,11 @@ def add(bot, update, args):
                     exec_query(
                         "INSERT INTO CHATURBATE VALUES ('{}', '{}', '{}')".
                         format(username, chatid, "F"))
+                    if "This room requires a password" in str(response_json['detail']):
+                        risposta(chatid, username + " This model uses a password for his/her room, tracking could be unstable", bot)
                     risposta(chatid, username + " has been added", bot)
+
+
                 else:
                     risposta(chatid, username +
                              " has already been added", bot)
@@ -614,20 +609,14 @@ def check_online_status():
                 elif response != "error":
                     response = json.loads(response_list[x])
                     if "401" in str(response['status']):
-                        if "This room requires a password" in str(
-                                response['detail']):
-                            #exec_query(
-                            #"DELETE FROM CHATURBATE WHERE USERNAME='{}'".
-                            #    format(username_list[x]))
-                            #risposta(
-                            #    chatid_list[x], username_list[x] +
-                            #    " has been removed because it requires a password and cannot be tracked", bot
-                            #)
-                            #print(
-                            #    username_list[x],
-                            #    "has been removed because it requires a password and cannot be tracked"
-                            #)
-                            pass
+                        if "This room requires a password" in str(response['detail']):
+
+                            if (online_list[x] == "F"):
+
+                                risposta(chatid_list[x], username_list[x] +" is now online! You can watch the live here: http://en.chaturbate.com/"+ username_list[x], bot)
+                                
+                                exec_query("UPDATE CHATURBATE SET ONLINE='{}' WHERE USERNAME='{}' AND CHAT_ID='{}'".format("T", username_list[x], chatid_list[x]))
+
                         if "Room is deleted" in str(response['detail']):
                             exec_query(
                                 "DELETE FROM CHATURBATE WHERE USERNAME='{}'".
@@ -652,7 +641,6 @@ def check_online_status():
                                   "has been removed because has been banned")
             except Exception as e:
                 handle_exception(e)
-
 
 def telegram_bot():
 
