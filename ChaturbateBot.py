@@ -616,17 +616,18 @@ def check_online_status():
                     if "401" in str(response['status']):
                         if "This room requires a password" in str(
                                 response['detail']):
-                            exec_query(
-                                "DELETE FROM CHATURBATE WHERE USERNAME='{}'".
-                                format(username_list[x]))
-                            risposta(
-                                chatid_list[x], username_list[x] +
-                                " has been removed because it requires a password and cannot be tracked", bot
-                            )
-                            print(
-                                username_list[x],
-                                "has been removed because it requires a password and cannot be tracked"
-                            )
+                            #exec_query(
+                            #"DELETE FROM CHATURBATE WHERE USERNAME='{}'".
+                            #    format(username_list[x]))
+                            #risposta(
+                            #    chatid_list[x], username_list[x] +
+                            #    " has been removed because it requires a password and cannot be tracked", bot
+                            #)
+                            #print(
+                            #    username_list[x],
+                            #    "has been removed because it requires a password and cannot be tracked"
+                            #)
+                            pass
                         if "Room is deleted" in str(response['detail']):
                             exec_query(
                                 "DELETE FROM CHATURBATE WHERE USERNAME='{}'".
