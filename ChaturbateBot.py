@@ -298,9 +298,13 @@ def add(bot, update, args):
                     exec_query(
                         "INSERT INTO CHATURBATE VALUES ('{}', '{}', '{}')".
                         format(username, chatid, "F"))
-                    if "This room requires a password" in str(response_json['detail']):
-                        risposta(chatid, username + " This model uses a password for his/her room, tracking could be unstable", bot)
-                    risposta(chatid, username + " has been added", bot)
+                    try:
+                     status= str(response_json['detail'])
+                     if "This room requires a password" in status:
+                        risposta(chatid, username +" uses a password for his/her room, it has been added tracking could be unstable", bot)
+                    except KeyError:
+                        risposta(chatid, username + " has been added", bot)
+
 
 
                 else:
