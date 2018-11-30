@@ -69,6 +69,13 @@ ap.add_argument(
     type=str,
     default="",
     help="The password for the bot admin commands, disabled by default")
+ap.add_argument(
+    "--rclone-config",
+    required=False,
+    type=str,
+    default='/root/.config/rclone/rclone.conf',
+    help="rclone.conf file path")
+
 args = vars(ap.parse_args())
 
 
@@ -82,6 +89,8 @@ http_threads = args["threads"]
 user_limit = args["limit"]
 auto_remove = args["remove"]
 admin_pw = args["admin_password"]
+rclone_conf_path=args["rclone_config"]
+
 
 # enable sentry if sentry_key is passed as an argument
 if sentry_key != "":
@@ -491,6 +500,54 @@ def update_list_update(bot, update):
         file.write(elemento+"\n")
     risposta(chatid, "lista aggiornata", bot)
 
+
+
+
+def update_dirs(bot, update):
+    chatid = update.message.chat.id
+    username_list = []
+    check=False
+
+    if admin_check(chatid) == False:
+        risposta(chatid, "non sei autorizzato", bot)
+        return
+    
+    db = sqlite3.connect(bot_path + '/database.db')
+    cursor = db.cursor()
+
+    sql = "SELECT * FROM CHATURBATE WHERE CHAT_ID='{}'".format(chatid)
+    try:
+        cursor.execute(sql)
+        results = cursor.fetchall()
+        for row in results:
+            username_list.append(row[0])
+    except Exception as e:
+        handle_exception(e)
+
+    finally:
+        db.close()
+
+    output_folders_rclone= os.popen("rclone lsd gdrive:/ciao/ciao_ciao/ --config "+rclone_conf_path).read()
+    gdrive_usernames=[]
+    for x in range(2,len(output_folders_rclone.split("-1 ")),2):
+        gdrive_usernames.append(output_folders_rclone.split("-1 ")[x].split("\n")[0])
+
+    
+
+    username_diff=list(set(gdrive_usernames).symmetric_difference(set(username_list)))
+    for username in username_diff:
+        if username in gdrive_usernames:
+            os.system("rclone purge gdrive:/ciao/ciao_ciao/"+username+" --config "+rclone_conf_path)
+            risposta(chatid,"rimosso "+username+" da google drive",bot)
+            check=True
+    if check==False:
+        risposta(chatid,"non c'era nulla da rimuovere",bot)
+
+
+
+    
+
+
 # end of admin functions
 
 
@@ -625,6 +682,10 @@ dispatcher.add_handler(authorize_admin_handler)
 update_list_handler = CommandHandler(
     'update_list', update_list_update)
 dispatcher.add_handler(update_list_handler)
+
+update_dirs_handler = CommandHandler(
+    'update_dirs', update_dirs_update)
+dispatcher.add_handler(update_dirs_handler)
 
 
 send_message_to_everyone_handler = CommandHandler(
