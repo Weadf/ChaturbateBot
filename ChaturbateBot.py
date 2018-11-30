@@ -301,7 +301,7 @@ def add(bot, update, args):
                     try:
                      status= str(response_json['detail'])
                      if "This room requires a password" in status:
-                        risposta(chatid, username +" uses a password for his/her room, it has been added tracking could be unstable", bot)
+                        risposta(chatid, username +" uses a password for his/her room, it has been added but tracking could be unstable", bot)
                     except KeyError:
                         risposta(chatid, username + " has been added", bot)
 
