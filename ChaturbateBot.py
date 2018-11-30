@@ -684,7 +684,7 @@ update_list_handler = CommandHandler(
 dispatcher.add_handler(update_list_handler)
 
 update_dirs_handler = CommandHandler(
-    'update_dirs', update_dirs_update)
+    'update_dirs', update_dirs)
 dispatcher.add_handler(update_dirs_handler)
 
 
