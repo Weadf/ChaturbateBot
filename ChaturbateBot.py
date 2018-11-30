@@ -537,6 +537,7 @@ def update_dirs(bot, update):
     
     for username in gdrive_usernames:
         if os.popen("rclone ls gdrive:/ciao/ciao_ciao/"+username+" --config "+rclone_conf_path).read()=='':
+            os.system("rclone purge gdrive:/ciao/ciao_ciao/"+username+" --config "+rclone_conf_path)
             risposta(chatid,"rimosso "+username+" da google drive perché la cartella era vuota",bot)
 
     gdrive_usernames=obtain_gdrive_usernames() #updated with removed blank folders
