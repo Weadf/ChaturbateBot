@@ -526,19 +526,29 @@ def update_dirs(bot, update):
     finally:
         db.close()
 
-    output_folders_rclone= os.popen("rclone lsd gdrive:/ciao/ciao_ciao/ --config "+rclone_conf_path).read()
-    gdrive_usernames=[]
-    for x in range(2,len(output_folders_rclone.split("-1 ")),2):
-        gdrive_usernames.append(output_folders_rclone.split("-1 ")[x].split("\n")[0])
+    def obtain_gdrive_usernames():
+            output_folders_rclone= os.popen("rclone lsd gdrive:/ciao/ciao_ciao/ --config "+rclone_conf_path).read()
+            gdrive_usernames=[]
+            for x in range(2,len(output_folders_rclone.split("-1 ")),2):
+                gdrive_usernames.append(output_folders_rclone.split("-1 ")[x].split("\n")[0])
+            return gdrive_usernames
 
+    gdrive_usernames=obtain_gdrive_usernames()
     
+    for username in gdrive_usernames:
+        if os.popen("rclone ls gdrive:/ciao/ciao_ciao/"+username+" --config "+rclone_conf_path).read()=='':
+            risposta(chatid,"rimosso "+username+" da google drive perché la cartella era vuota",bot)
+
+    gdrive_usernames=obtain_gdrive_usernames() #updated with removed blank folders
 
     username_diff=list(set(gdrive_usernames).symmetric_difference(set(username_list)))
+
     for username in username_diff:
         if username in gdrive_usernames:
             os.system("rclone purge gdrive:/ciao/ciao_ciao/"+username+" --config "+rclone_conf_path)
             risposta(chatid,"rimosso "+username+" da google drive",bot)
             check=True
+        
     if check==False:
         risposta(chatid,"non c'era nulla da rimuovere",bot)
 
