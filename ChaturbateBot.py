@@ -511,6 +511,21 @@ def update_dirs(bot, update):
         risposta(chatid, "non sei autorizzato", bot)
         return
     
+
+    def obtain_gdrive_usernames():
+            output_folders_rclone= os.popen("rclone lsd gdrive:/ciao/ciao_ciao/ --config "+rclone_conf_path).read()
+            gdrive_usernames=[]
+            for x in range(2,len(output_folders_rclone.split("-1 ")),2):
+                gdrive_usernames.append(output_folders_rclone.split("-1 ")[x].split("\n")[0])
+            return gdrive_usernames
+
+    def controlla_cartelle_vuote(username):
+       if os.popen("rclone ls gdrive:/ciao/ciao_ciao/"+username+" --config "+rclone_conf_path).read()=='':
+            os.system("rclone purge gdrive:/ciao/ciao_ciao/"+username+" --config "+rclone_conf_path)
+            risposta(chatid,"rimosso "+username+" da google drive perché la cartella era vuota",bot)
+
+
+
     db = sqlite3.connect(bot_path + '/database.db')
     cursor = db.cursor()
 
@@ -526,19 +541,13 @@ def update_dirs(bot, update):
     finally:
         db.close()
 
-    def obtain_gdrive_usernames():
-            output_folders_rclone= os.popen("rclone lsd gdrive:/ciao/ciao_ciao/ --config "+rclone_conf_path).read()
-            gdrive_usernames=[]
-            for x in range(2,len(output_folders_rclone.split("-1 ")),2):
-                gdrive_usernames.append(output_folders_rclone.split("-1 ")[x].split("\n")[0])
-            return gdrive_usernames
-
     gdrive_usernames=obtain_gdrive_usernames()
-    
+
     for username in gdrive_usernames:
-        if os.popen("rclone ls gdrive:/ciao/ciao_ciao/"+username+" --config "+rclone_conf_path).read()=='':
-            os.system("rclone purge gdrive:/ciao/ciao_ciao/"+username+" --config "+rclone_conf_path)
-            risposta(chatid,"rimosso "+username+" da google drive perché la cartella era vuota",bot)
+        threading.Thread(target=controlla_cartelle_vuote,args=(username,),daemon=True).start()
+        #print(username)
+
+        
 
     gdrive_usernames=obtain_gdrive_usernames() #updated with removed blank folders
 
@@ -697,11 +706,5 @@ send_message_to_everyone_handler = CommandHandler(
 dispatcher.add_handler(send_message_to_everyone_handler)
 
 
-threads = []
-check_online_status_thread = threading.Thread(target=check_online_status)
-telegram_bot_thread = threading.Thread(target=telegram_bot)
-
-threads.append(check_online_status_thread)
-threads.append(telegram_bot_thread)
-check_online_status_thread.start()
-telegram_bot_thread.start()
+threading.Thread(target=check_online_status).start()
+threading.Thread(target=telegram_bot).start()
