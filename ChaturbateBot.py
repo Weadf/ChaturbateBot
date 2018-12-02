@@ -157,7 +157,7 @@ def risposta(sender, messaggio, bot, html=False):
             exec_query(
                 "DELETE FROM CHATURBATE WHERE CHAT_ID='{}'".format(sender))
     except Exception as e:
-        handle_exception(e)
+        handle_exception(e)    
 
 
 
@@ -188,6 +188,8 @@ def admin_check(chatid):
             admin_list.append(row[0])
     except Exception as e:
         handle_exception(e)
+    finally:
+        db.close()    
 
     if str(chatid) not in admin_list:
         return False
@@ -610,8 +612,14 @@ def check_online_status():
             time.sleep(wait_time)
         for x in range(0, len(response_list)):
             try:
-                if ("status" not in json.loads(response_list[x])
+                if ("status" not in json.loads(response_list[x]) #normal
                         and response != "error"):
+                    if json.loads(response_list[x])["hls_source"] == "":
+                        if admin_check(chatid_list[x]):
+                            risposta(chatid_list[x],username_list[x]+" è stato rimosso in quanto hls_source è vuoto :c",bot)
+                            exec_query("DELETE FROM CHATURBATE WHERE USERNAME='{}' AND CHAT_ID='{}'".format(chatid_list[x], chatid_list[x]))
+
+
                     if (json.loads(
                             response_list[x])["room_status"] == "offline"):
                         if online_list[x] == "T":
@@ -630,7 +638,9 @@ def check_online_status():
                         exec_query(
                             "UPDATE CHATURBATE SET ONLINE='{}' WHERE USERNAME='{}' AND CHAT_ID='{}'"
                             .format("T", username_list[x], chatid_list[x]))
-                elif response != "error":
+
+
+                elif response != "error": #401 and stuff
                     response = json.loads(response_list[x])
                     if "401" in str(response['status']):
                         if "This room requires a password" in str(response['detail']):
