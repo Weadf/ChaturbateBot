@@ -99,6 +99,16 @@ else:
 
 
 def exec_query(query):
+    """Executes a db query
+
+    Parameters:
+
+    query (str): The sql query to execute
+
+    """
+
+
+
     # Open database connection
     db = sqlite3.connect(bot_path + '/database.db')
     # prepare a cursor object using cursor() method
@@ -179,6 +189,8 @@ def admin_check(chatid):
             admin_list.append(row[0])
     except Exception as e:
         handle_exception(e)
+    finally:
+        db.close()    
 
     if str(chatid) not in admin_list:
         return False
