@@ -614,7 +614,7 @@ def check_online_status():
             try:
                 if ("status" not in json.loads(response_list[x]) #normal
                         and response != "error"):
-                    if json.loads(response_list[x])["hls_source"] == "" and json.loads(response_list[x])["room_status"] != "offline":
+                    if json.loads(response_list[x])["hls_source"] == "":
                         if admin_check(chatid_list[x]):
                             risposta(chatid_list[x],username_list[x]+" è stato rimosso in quanto hls_source è vuoto :c",bot)
                             exec_query("DELETE FROM CHATURBATE WHERE USERNAME='{}' AND CHAT_ID='{}'".format(chatid_list[x], chatid_list[x]))
