@@ -108,6 +108,16 @@ else:
 
 
 def exec_query(query):
+    """Executes a db query
+
+    Parameters:
+
+    query (str): The sql query to execute
+
+    """
+
+
+
     # Open database connection
     db = sqlite3.connect(bot_path + '/database.db')
     # prepare a cursor object using cursor() method
@@ -188,6 +198,8 @@ def admin_check(chatid):
             admin_list.append(row[0])
     except Exception as e:
         handle_exception(e)
+    finally:
+        db.close()    
 
     if str(chatid) not in admin_list:
         return False
@@ -262,10 +274,10 @@ def add(bot, update, args):
 
         else:
             username_list = []
-            admin_list = []
             db = sqlite3.connect(bot_path + '/database.db')
             cursor = db.cursor()
 
+            #obtain present usernames
             sql = "SELECT * FROM CHATURBATE WHERE CHAT_ID='{}'".format(
                 chatid)
             try:
@@ -275,21 +287,13 @@ def add(bot, update, args):
                     username_list.append(row[0])
             except Exception as e:
                 handle_exception(e)
-
-            sql = "SELECT * FROM ADMIN"
-            try:
-                cursor.execute(sql)
-                results = cursor.fetchall()
-                for row in results:
-                    admin_list.append(row[0])
-            except Exception as e:
-                handle_exception(e)
             finally:
-                db.close()
+                db.close()    
+
 
             user_limit_local = user_limit
 
-            if str(chatid) in admin_list:
+            if admin_check(chatid):
                 user_limit_local = 0  # admin has power, bitches
 
             # 0 is unlimited usernames
