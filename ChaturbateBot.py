@@ -107,8 +107,6 @@ def exec_query(query):
 
     """
 
-
-
     # Open database connection
     db = sqlite3.connect(bot_path + '/database.db')
     # prepare a cursor object using cursor() method
@@ -125,7 +123,6 @@ def exec_query(query):
         db.rollback()
     # disconnect from server
     db.close()
-
 
 
 def risposta(sender, messaggio, bot, html=False):
@@ -161,9 +158,7 @@ def risposta(sender, messaggio, bot, html=False):
         handle_exception(e)
 
 
-
 def admin_check(chatid):
-
     """Checks if a chatid is present in the admin database
 
     Parameters:
@@ -190,13 +185,12 @@ def admin_check(chatid):
     except Exception as e:
         handle_exception(e)
     finally:
-        db.close()    
+        db.close()
 
     if str(chatid) not in admin_list:
         return False
     else:
         return True
-
 
 
 # default table creation
@@ -215,7 +209,7 @@ exec_query("""CREATE TABLE IF NOT EXISTS ADMIN (
 def start(bot, update):
     risposta(
         update.message.chat.id,
-        "/add username to add an username to check \n/remove username to remove an username\n(you can use /remove <b>all</b> to remove all models at once) \n/list to see which users you are currently following", bot,html=True
+        "/add username to add an username to check \n/remove username to remove an username\n(you can use /remove <b>all</b> to remove all models at once) \n/list to see which users you are currently following", bot, html=True
     )
 
 
@@ -226,7 +220,7 @@ def add(bot, update, args):
         if len(args) != 1:
             risposta(
                 chatid,
-                "You need to specify an username to follow, use the command like /add <b>test</b>", bot,html=True
+                "You need to specify an username to follow, use the command like /add <b>test</b>", bot, html=True
             )
             return
         # not lowercase usernames bug the api calls
@@ -238,37 +232,38 @@ def add(bot, update, args):
     try:
         target = "https://en.chaturbate.com/api/chatvideocontext/" + username
 
-        headers = {'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/70.0.3538.110 Safari/537.36',}
+        headers = {
+            'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/70.0.3538.110 Safari/537.36', }
         response = requests.get(target, headers=headers)
-        response_json = json.loads(response.content)  # server response + json parsing
+        # server response + json parsing
+        response_json = json.loads(response.content)
 
         # check for not existing models and errors
         if (("status" in response_json) and ("401" in str(response_json['status'])) and ("This room requires a password" not in str(response_json['detail']))):
-            
-                     
-                if "Room is deleted" in str(response_json['detail']):
 
-                    risposta(
-                        chatid, username +
-                        " has not been added because room has been deleted", bot
-                    )
-                    print(
-                        username,
-                        "has not been added because room has been deleted")
-                if "This room has been banned" in str(response_json['detail']):
+            if "Room is deleted" in str(response_json['detail']):
 
-                    risposta(
-                        chatid, username +
-                        " has not been added because has been banned", bot)
-                    print(username,
-                          "has not been added because has been banned")
+                risposta(
+                    chatid, username +
+                    " has not been added because room has been deleted", bot
+                )
+                print(
+                    username,
+                    "has not been added because room has been deleted")
+            if "This room has been banned" in str(response_json['detail']):
+
+                risposta(
+                    chatid, username +
+                    " has not been added because has been banned", bot)
+                print(username,
+                      "has not been added because has been banned")
 
         else:
             username_list = []
             db = sqlite3.connect(bot_path + '/database.db')
             cursor = db.cursor()
 
-            #obtain present usernames
+            # obtain present usernames
             sql = "SELECT * FROM CHATURBATE WHERE CHAT_ID='{}'".format(
                 chatid)
             try:
@@ -279,8 +274,7 @@ def add(bot, update, args):
             except Exception as e:
                 handle_exception(e)
             finally:
-                db.close()    
-
+                db.close()
 
             user_limit_local = user_limit
 
@@ -294,13 +288,12 @@ def add(bot, update, args):
                         "INSERT INTO CHATURBATE VALUES ('{}', '{}', '{}')".
                         format(username, chatid, "F"))
                     try:
-                     status= str(response_json['detail'])
-                     if "This room requires a password" in status:
-                        risposta(chatid, username +" uses a password for his/her room, it has been added but tracking could be unstable", bot)
+                        status = str(response_json['detail'])
+                        if "This room requires a password" in status:
+                            risposta(
+                                chatid, username + " uses a password for his/her room, it has been added but tracking could be unstable", bot)
                     except KeyError:
                         risposta(chatid, username + " has been added", bot)
-
-
 
                 else:
                     risposta(chatid, username +
@@ -370,7 +363,7 @@ def list_command(bot, update):
     chatid = update.message.chat.id
     username_list = []
     online_list = []
-    username_dict={}
+    username_dict = {}
     followed_users = ""
     db = sqlite3.connect(bot_path + '/database.db')
     cursor = db.cursor()
@@ -386,9 +379,9 @@ def list_command(bot, update):
         handle_exception(e)
     else:  # else means that the code will get executed if an exception doesn't happen
 
-        for x in range(0,len(username_list)):
-                username_dict.update({username_list[x]:online_list[x]}) #dictionary with usernames and online_status
-
+        for x in range(0, len(username_list)):
+            # dictionary with usernames and online_status
+            username_dict.update({username_list[x]: online_list[x]})
 
         for username in sorted(username_dict):
             followed_users += username + ": "
@@ -471,10 +464,10 @@ def check_online_status():
     bot = updater.bot
     while (1):
         username_list = []
-        chatid_list = []
-        online_list = []
         response_list = []
-        sql = "SELECT * FROM CHATURBATE"
+
+        # list usernames using distinct
+        sql = "SELECT DISTINCT USERNAME FROM CHATURBATE"
         try:
             db = sqlite3.connect(bot_path + '/database.db')
             cursor = db.cursor()
@@ -482,12 +475,11 @@ def check_online_status():
             results = cursor.fetchall()
             for row in results:
                 username_list.append(row[0])
-                chatid_list.append(row[1])
-                online_list.append(row[2])
         except Exception as e:
             handle_exception(e)
         finally:
             db.close()
+
         session = FuturesSession(
             executor=ThreadPoolExecutor(max_workers=http_threads))
         for x in range(0, len(username_list)):
@@ -502,28 +494,72 @@ def check_online_status():
                 response = "error"
             response_list.append(response)
             time.sleep(wait_time)
+
+
+            
         for x in range(0, len(response_list)):
+            chatid_list = []
+            online_list = []
             try:
+                # list online status using distinct (considering the list to have all the same elements, as they are all updated
+                        # at the same time and I'm using a distinct to avoid a big list of useless (same) values
+                sql = "SELECT DISTINCT ONLINE FROM CHATURBATE WHERE USERNAME='{}'".format(
+                            username_list[x])
+                try:
+                            db = sqlite3.connect(bot_path + '/database.db')
+                            cursor = db.cursor()
+                            cursor.execute(sql)
+                            results = cursor.fetchall()
+                            for row in results:
+                                online_list.append(row[0])
+                except Exception as e:
+                            handle_exception(e)
+                finally:
+                            db.close()
+
+                        # list chatid
+                sql = "SELECT CHAT_ID FROM CHATURBATE WHERE USERNAME='{}'".format(
+                            username_list[x])
+                try:
+                            db = sqlite3.connect(bot_path + '/database.db')
+                            cursor = db.cursor()
+                            cursor.execute(sql)
+                            results = cursor.fetchall()
+                            for row in results:
+                                chatid_list.append(row[0])
+                except Exception as e:
+                            handle_exception(e)
+                finally:
+                            db.close()
+
+
+
+
                 if ("status" not in json.loads(response_list[x])
                         and response != "error"):
-                    if (json.loads(
-                            response_list[x])["room_status"] == "offline"):
-                        if online_list[x] == "T":
+                    if (json.loads(response_list[x])["room_status"] == "offline"):
+
+                        if online_list[0] == "T" :
                             exec_query(
-                                "UPDATE CHATURBATE SET ONLINE='{}' WHERE USERNAME='{}' AND CHAT_ID='{}'"
-                                .format("F", username_list[x], chatid_list[x]))
-                            risposta(chatid_list[x],
-                                     username_list[x] + " is now offline", bot)
-                    elif (online_list[x] == "F"):
+                                "UPDATE CHATURBATE SET ONLINE='{}' WHERE USERNAME='{}'"
+                                .format("F", username_list[x]))
 
-                        risposta(
-                            chatid_list[x], username_list[x] +
-                            " is now online! You can watch the live here: http://en.chaturbate.com/"
-                            + username_list[x], bot)
+                            for y in chatid_list:
+                                risposta(y, username_list[x] + " is now offline", bot)
 
-                        exec_query(
-                            "UPDATE CHATURBATE SET ONLINE='{}' WHERE USERNAME='{}' AND CHAT_ID='{}'"
-                            .format("T", username_list[x], chatid_list[x]))
+
+                    elif online_list[0] == "F":
+
+                            exec_query(
+                                "UPDATE CHATURBATE SET ONLINE='{}' WHERE USERNAME='{}'"
+                                .format("T", username_list[x]))
+
+                            for y in chatid_list:    
+                                risposta(y, username_list[x] +" is now online! You can watch the live here: http://en.chaturbate.com/"+ username_list[x], bot)
+
+                            
+
+
                 elif response != "error":
                     response = json.loads(response_list[x])
                     if "401" in str(response['status']):
@@ -531,18 +567,17 @@ def check_online_status():
 
                             if (online_list[x] == "F"):
 
-                                risposta(chatid_list[x], username_list[x] +" is now online! You can watch the live here: http://en.chaturbate.com/"+ username_list[x], bot)
+                                exec_query("UPDATE CHATURBATE SET ONLINE='{}' WHERE USERNAME='{}'".format("T", username_list[x]))
                                 
-                                exec_query("UPDATE CHATURBATE SET ONLINE='{}' WHERE USERNAME='{}' AND CHAT_ID='{}'".format("T", username_list[x], chatid_list[x]))
+                                for y in chatid_list:    
+                                    risposta(y, username_list[x] +" is now online! You can watch the live here: http://en.chaturbate.com/"+ username_list[x], bot)
 
                         if "Room is deleted" in str(response['detail']):
                             exec_query(
                                 "DELETE FROM CHATURBATE WHERE USERNAME='{}'".
                                 format(username_list[x]))
-                            risposta(
-                                chatid_list[x], username_list[x] +
-                                " has been removed because room has been deleted", bot
-                            )
+                            for y in chatid_list:
+                                risposta(y, username_list[x] +" has been removed because room has been deleted", bot)
                             print(
                                 username_list[x],
                                 "has been removed because room has been deleted"
@@ -552,9 +587,8 @@ def check_online_status():
                             exec_query(
                                 "DELETE FROM CHATURBATE WHERE USERNAME='{}'".
                                 format(username_list[x]))
-                            risposta(
-                                chatid_list[x], username_list[x] +
-                                " has been removed because has been banned", bot)
+                            for y in chatid_list:
+                                risposta(y, username_list[x] +" has been removed because room has been deleted", bot)
                             print(username_list[x],
                                   "has been removed because has been banned")
             except Exception as e:
@@ -568,7 +602,6 @@ def telegram_bot():
             updater.start_polling()
         except Exception as e:
             handle_exception(e)
-
 
 
 start_handler = CommandHandler(('start', 'help'), start)
