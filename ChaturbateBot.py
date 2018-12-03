@@ -581,10 +581,10 @@ def check_online_status():
     bot = updater.bot
     while (1):
         username_list = []
-        chatid_list = []
-        online_list = []
         response_list = []
-        sql = "SELECT * FROM CHATURBATE"
+
+        # list usernames using distinct
+        sql = "SELECT DISTINCT USERNAME FROM CHATURBATE"
         try:
             db = sqlite3.connect(bot_path + '/database.db')
             cursor = db.cursor()
@@ -592,12 +592,11 @@ def check_online_status():
             results = cursor.fetchall()
             for row in results:
                 username_list.append(row[0])
-                chatid_list.append(row[1])
-                online_list.append(row[2])
         except Exception as e:
             handle_exception(e)
         finally:
             db.close()
+
         session = FuturesSession(
             executor=ThreadPoolExecutor(max_workers=http_threads))
         for x in range(0, len(username_list)):
@@ -612,28 +611,72 @@ def check_online_status():
                 response = "error"
             response_list.append(response)
             time.sleep(wait_time)
+
+
+            
         for x in range(0, len(response_list)):
+            chatid_list = []
+            online_list = []
             try:
+                # list online status using distinct (considering the list to have all the same elements, as they are all updated
+                        # at the same time and I'm using a distinct to avoid a big list of useless (same) values
+                sql = "SELECT DISTINCT ONLINE FROM CHATURBATE WHERE USERNAME='{}'".format(
+                            username_list[x])
+                try:
+                            db = sqlite3.connect(bot_path + '/database.db')
+                            cursor = db.cursor()
+                            cursor.execute(sql)
+                            results = cursor.fetchall()
+                            for row in results:
+                                online_list.append(row[0])
+                except Exception as e:
+                            handle_exception(e)
+                finally:
+                            db.close()
+
+                        # list chatid
+                sql = "SELECT CHAT_ID FROM CHATURBATE WHERE USERNAME='{}'".format(
+                            username_list[x])
+                try:
+                            db = sqlite3.connect(bot_path + '/database.db')
+                            cursor = db.cursor()
+                            cursor.execute(sql)
+                            results = cursor.fetchall()
+                            for row in results:
+                                chatid_list.append(row[0])
+                except Exception as e:
+                            handle_exception(e)
+                finally:
+                            db.close()
+
+
+
+
                 if ("status" not in json.loads(response_list[x])
                         and response != "error"):
-                    if (json.loads(
-                            response_list[x])["room_status"] == "offline"):
-                        if online_list[x] == "T":
+                    if (json.loads(response_list[x])["room_status"] == "offline"):
+
+                        if online_list[0] == "T" :
                             exec_query(
-                                "UPDATE CHATURBATE SET ONLINE='{}' WHERE USERNAME='{}' AND CHAT_ID='{}'"
-                                .format("F", username_list[x], chatid_list[x]))
-                            risposta(chatid_list[x],
-                                     username_list[x] + " is now offline", bot)
-                    elif (online_list[x] == "F"):
+                                "UPDATE CHATURBATE SET ONLINE='{}' WHERE USERNAME='{}'"
+                                .format("F", username_list[x]))
 
-                        risposta(
-                            chatid_list[x], username_list[x] +
-                            " is now online! You can watch the live here: http://en.chaturbate.com/"
-                            + username_list[x], bot)
+                            for y in chatid_list:
+                                risposta(y, username_list[x] + " is now offline", bot)
 
-                        exec_query(
-                            "UPDATE CHATURBATE SET ONLINE='{}' WHERE USERNAME='{}' AND CHAT_ID='{}'"
-                            .format("T", username_list[x], chatid_list[x]))
+
+                    elif online_list[0] == "F":
+
+                            exec_query(
+                                "UPDATE CHATURBATE SET ONLINE='{}' WHERE USERNAME='{}'"
+                                .format("T", username_list[x]))
+
+                            for y in chatid_list:    
+                                risposta(y, username_list[x] +" is now online! You can watch the live here: http://en.chaturbate.com/"+ username_list[x], bot)
+
+                            
+
+
                 elif response != "error":
                     response = json.loads(response_list[x])
                     if "401" in str(response['status']):
@@ -641,18 +684,17 @@ def check_online_status():
 
                             if (online_list[x] == "F"):
 
-                                risposta(chatid_list[x], username_list[x] +" is now online! You can watch the live here: http://en.chaturbate.com/"+ username_list[x], bot)
+                                exec_query("UPDATE CHATURBATE SET ONLINE='{}' WHERE USERNAME='{}'".format("T", username_list[x]))
                                 
-                                exec_query("UPDATE CHATURBATE SET ONLINE='{}' WHERE USERNAME='{}' AND CHAT_ID='{}'".format("T", username_list[x], chatid_list[x]))
+                                for y in chatid_list:    
+                                    risposta(y, username_list[x] +" is now online! You can watch the live here: http://en.chaturbate.com/"+ username_list[x], bot)
 
                         if "Room is deleted" in str(response['detail']):
                             exec_query(
                                 "DELETE FROM CHATURBATE WHERE USERNAME='{}'".
                                 format(username_list[x]))
-                            risposta(
-                                chatid_list[x], username_list[x] +
-                                " has been removed because room has been deleted", bot
-                            )
+                            for y in chatid_list:
+                                risposta(y, username_list[x] +" has been removed because room has been deleted", bot)
                             print(
                                 username_list[x],
                                 "has been removed because room has been deleted"
@@ -662,9 +704,8 @@ def check_online_status():
                             exec_query(
                                 "DELETE FROM CHATURBATE WHERE USERNAME='{}'".
                                 format(username_list[x]))
-                            risposta(
-                                chatid_list[x], username_list[x] +
-                                " has been removed because has been banned", bot)
+                            for y in chatid_list:
+                                risposta(y, username_list[x] +" has been removed because room has been deleted", bot)
                             print(username_list[x],
                                   "has been removed because has been banned")
             except Exception as e:
