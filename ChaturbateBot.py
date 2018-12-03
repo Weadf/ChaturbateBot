@@ -682,7 +682,7 @@ def check_online_status():
                     if "401" in str(response['status']):
                         if "This room requires a password" in str(response['detail']):
 
-                            if (online_list[x] == "F"):
+                            if (online_list[0] == "F"):
 
                                 exec_query("UPDATE CHATURBATE SET ONLINE='{}' WHERE USERNAME='{}'".format("T", username_list[x]))
                                 
