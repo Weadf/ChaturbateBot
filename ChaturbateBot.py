@@ -708,6 +708,17 @@ def check_online_status():
                                 risposta(y, username_list[x] +" has been removed because room has been deleted", bot)
                             print(username_list[x],
                                   "has been removed because has been banned")
+
+                        if "This room is not available to your region or gender." in str(
+                                response['detail']):
+                            exec_query(
+                                "DELETE FROM CHATURBATE WHERE USERNAME='{}'".
+                                format(username_list[x]))
+                            for y in chatid_list:
+                                risposta(y, username_list[x] +" has been removed because of geoblocking, I'm going to try to fix this soon", bot)
+                            print(username_list[x],
+                                  "has been removed because of blocking")          
+                                  
             except Exception as e:
                 handle_exception(e)
 
