@@ -606,7 +606,7 @@ def check_online_status():
                      get("https://en.chaturbate.com/api/chatvideocontext/" +
                          username_list[x].lower())).result()
                 ).content  # lowercase to fix old entries in db, plus more safety
-                if "b\'" in response:
+                if "b\'" in str(response):
                     response.replace("b\'","") #remove shitty bytecode (why does this happen???)
             except Exception as e:
                 handle_exception(e)
