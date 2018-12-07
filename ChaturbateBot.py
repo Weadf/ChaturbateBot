@@ -638,7 +638,7 @@ def check_online_status():
                         'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/70.0.3538.110 Safari/537.36', }
                     response = requests.get(target, headers=headers)
                     response_json = json.loads(response.content)
-                    logging.info("Requested " + work[1]+" "+str(work[0]))
+                    
                     response_list[work[1]] = response_json          
                 except Exception as e:
                     handle_exception(e)
@@ -658,14 +658,14 @@ def check_online_status():
         
         #Starting worker threads on queue processing
         for i in range(http_threads):
-            logging.debug('Starting thread '+ str(i))
+            
             worker = threading.Thread(target=crawl, args=(q,response_list), daemon=True)
             worker.start()
         
         #now we wait until the queue has been processed
         q.join()
         
-        logging.info('All tasks completed.')
+        
             
         
 
