@@ -743,13 +743,7 @@ def check_online_status():
             except Exception as e:
                 handle_exception(e)
 
-def telegram_bot():
-
-    while True:
-        try:
-            updater.start_polling()
-        except Exception as e:
-            handle_exception(e)
+    
 
 
 
@@ -784,4 +778,9 @@ dispatcher.add_handler(send_message_to_everyone_handler)
 
 
 threading.Thread(target=check_online_status).start()
-threading.Thread(target=telegram_bot).start()
+
+while True:
+        try:
+            updater.start_polling()
+        except Exception as e:
+            handle_exception(e)
