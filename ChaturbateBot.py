@@ -581,7 +581,7 @@ def check_online_status():
     global updater
     bot = updater.bot
     while (1):
-        time.sleep(wait_time)  #avoid server spamming by time-limiting the "request spam"
+        
 
         username_list = []
         online_dict = {}
@@ -663,6 +663,7 @@ def check_online_status():
             
             worker = threading.Thread(target=crawl, args=(q,response_list), daemon=True)
             worker.start()
+            time.sleep(wait_time)  #avoid server spamming by time-limiting the "request spam"
         
         #now we wait until the queue has been processed
         q.join()
