@@ -52,7 +52,7 @@ ap.add_argument(
     required=False,
     type=int,
     default=0,
-    help="The maximum number of multiple users a person can follow")
+    help="The maximum number of multiple users a person can follow, 0=unlimited")
 ap.add_argument(
     "-r",
     "--remove",
