@@ -38,8 +38,8 @@ ap.add_argument(
     "--time",
     required=False,
     type=float,
-    default=60,
-    help="Time wait between every connection made, in seconds. Default=60s")
+    default=0.2,
+    help="Time wait between every connection made, in seconds. Default=0.2s")
 ap.add_argument(
     "-threads",
     required=False,
@@ -464,7 +464,7 @@ def check_online_status():
     global updater
     bot = updater.bot
     while (1):
-        time.sleep(wait_time)  #avoid server spamming by time-limiting the "request spam"
+        
 
         username_list = []
         online_dict = {}
@@ -523,7 +523,7 @@ def check_online_status():
                     response_json = json.loads(response.content)
                     
                     response_list[work[1]] = response_json
-                    
+
                 except json.JSONDecodeError:
                     response_list[work[1]] = "error"              
                 except Exception as e:
@@ -547,6 +547,7 @@ def check_online_status():
             
             worker = threading.Thread(target=crawl, args=(q,response_list), daemon=True)
             worker.start()
+            time.sleep(wait_time)  #avoid server spamming by time-limiting the start of requests
         
         #now we wait until the queue has been processed
         q.join()
