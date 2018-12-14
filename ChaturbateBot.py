@@ -522,7 +522,10 @@ def check_online_status():
                     response = requests.get(target, headers=headers)
                     response_json = json.loads(response.content)
                     
-                    response_list[work[1]] = response_json          
+                    response_list[work[1]] = response_json
+                    
+                except json.JSONDecodeError:
+                    response_list[work[1]] = "error"              
                 except Exception as e:
                     handle_exception(e)
                     response_list[work[1]] = "error"
