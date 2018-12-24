@@ -92,7 +92,12 @@ if sentry_key != "":
     sentry_sdk.init(sentry_key)
 
     def handle_exception(e):
-        sentry_sdk.capture_exception()
+        try:
+         sentry_sdk.capture_exception()
+        except Exception as e:
+            print(str(e))
+            sentry_sdk.capture_message("Sentry ha failato ad handlare l'exception")
+
 else:
 
     def handle_exception(e):
