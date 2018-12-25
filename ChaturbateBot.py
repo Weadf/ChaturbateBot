@@ -636,13 +636,6 @@ def check_online_status():
                 handle_exception(e)
 
 
-def telegram_bot():
-
-    while True:
-        try:
-            updater.start_polling()
-        except Exception as e:
-            handle_exception(e)
 
 
 start_handler = CommandHandler(('start', 'help'), start)
@@ -667,5 +660,10 @@ send_message_to_everyone_handler = CommandHandler(
 dispatcher.add_handler(send_message_to_everyone_handler)
 
 
-threading.Thread(target=check_online_status).start()
-threading.Thread(target=telegram_bot).start()
+threading.Thread(target=check_online_status,daemon=True).start()
+
+while True:
+    try:
+        updater.start_polling()
+    except Exception as e:
+        handle_exception(e)
