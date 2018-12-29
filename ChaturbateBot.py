@@ -96,7 +96,7 @@ if sentry_key != "":
          sentry_sdk.capture_exception()
         except Exception as e:
             print(str(e))
-            sentry_sdk.capture_message("Sentry ha failato ad handlare l'exception")
+            sentry_sdk.capture_message("Sentry ha failato ad handlare l'exception"+"l'exception avvenuta è "+str(e))
 
 else:
 
