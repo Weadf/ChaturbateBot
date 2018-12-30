@@ -529,7 +529,7 @@ def check_online_status():
                     
                     response_list[work[1]] = response_json
 
-                except json.JSONDecodeError:
+                except (json.JSONDecodeError,ConnectionError) as e:
                     response_list[work[1]] = "error"              
                 except Exception as e:
                     handle_exception(e)
