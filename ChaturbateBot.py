@@ -35,8 +35,8 @@ ap.add_argument(
     "--time",
     required=False,
     type=float,
-    default=0.2,
-    help="Time wait between every connection made, in seconds. Default=0.2s")
+    default=0.3,
+    help="Time wait between every connection made, in seconds. Default=0.3s")
 ap.add_argument(
     "-threads",
     required=False,
