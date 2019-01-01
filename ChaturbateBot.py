@@ -21,7 +21,7 @@ from telegram.ext import CommandHandler, Updater
 
 
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-                    level=logging.INFO)
+                    level=logging.INFO,filename="program_log.log")            
 
 ap = argparse.ArgumentParser()
 ap.add_argument(
@@ -86,6 +86,7 @@ user_limit = args["limit"]
 auto_remove = args["remove"]
 admin_pw = args["admin_password"]
 
+
 # enable sentry if sentry_key is passed as an argument
 if sentry_key != "":
     import sentry_sdk
@@ -95,13 +96,13 @@ if sentry_key != "":
         try:
          sentry_sdk.capture_exception()
         except Exception as e:
-            print(str(e))
+            logging.error(e,exc_info=True)
             sentry_sdk.capture_message("Sentry ha failato ad handlare l'exception"+"l'exception avvenuta è "+str(e))
 
 else:
 
     def handle_exception(e):
-        print(str(e))
+        logging.error(e,exc_info=True)
 
 
 def exec_query(query):
@@ -156,7 +157,7 @@ def risposta(sender, messaggio, bot, html=False):
             bot.send_message(chat_id=sender, text=messaggio)
     except Unauthorized:
         if auto_remove == True:
-            print(
+            logging.info(
                 "{} blocked the bot, he's been removed from the database".format(sender))
             exec_query(
                 "DELETE FROM CHATURBATE WHERE CHAT_ID='{}'".format(sender))
@@ -220,7 +221,7 @@ def start(bot, update):
 
 
 def add(bot, update, args):
-    print("add")
+    logging.info("add")
     chatid = update.message.chat_id
     try:
         if len(args) != 1:
@@ -253,16 +254,16 @@ def add(bot, update, args):
                     chatid, username +
                     " has not been added because room has been deleted", bot
                 )
-                print(
-                    username,
-                    "has not been added because room has been deleted")
+                logging.info(
+                    username+
+                    " has not been added because room has been deleted")
             if "This room has been banned" in str(response_json['detail']):
 
                 risposta(
                     chatid, username +
                     " has not been added because has been banned", bot)
-                print(username,
-                      "has not been added because has been banned")
+                logging.info(username+
+                      " has not been added because has been banned")
 
         else:
             username_list = []
@@ -318,7 +319,7 @@ def add(bot, update, args):
 
 
 def remove(bot, update, args):
-    print("remove")
+    logging.info("remove")
     chatid = update.message.chat.id
     username_list = []
     if len(args) != 1:
@@ -409,7 +410,7 @@ def list_command(bot, update):
 
 def authorize_admin(bot, update, args):
 
-    print("admin-auth")
+    logging.info("admin-auth")
     chatid = update.message.chat_id
     if len(args) != 1:
         risposta(
@@ -529,7 +530,9 @@ def check_online_status():
                     
                     response_list[work[1]] = response_json
 
+
                 except (json.JSONDecodeError,ConnectionError) as e:
+                    handle_exception(e)
                     response_list[work[1]] = "error"              
                 except Exception as e:
                     handle_exception(e)
@@ -608,9 +611,9 @@ def check_online_status():
                                 format(username))
                             for y in chatid_dict[username]:
                                 risposta(y, username +" has been removed because room has been deleted", bot)
-                            print(
-                                username,
-                                "has been removed because room has been deleted"
+                            logging.info(
+                                username+
+                                " has been removed because room has been deleted"
                             )
 
                         if "This room has been banned" in str(
@@ -620,8 +623,8 @@ def check_online_status():
                                 format(username))
                             for y in chatid_dict[username]:
                                 risposta(y, username +" has been removed because room has been deleted", bot)
-                            print(username,
-                                  "has been removed because has been banned")
+                            logging.info(username+
+                                  " has been removed because has been banned")
 
                         if "This room is not available to your region or gender." in str(
                                 response['detail']):
@@ -630,8 +633,8 @@ def check_online_status():
                                 format(username))
                             for y in chatid_dict[username]:
                                 risposta(y, username +" has been removed because of geoblocking, I'm going to try to fix this soon", bot)
-                            print(username,
-                                  "has been removed because of blocking")          
+                            logging.info(username+
+                                  " has been removed because of blocking")          
             except Exception as e:
                 handle_exception(e)
 
