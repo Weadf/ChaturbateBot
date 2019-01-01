@@ -20,9 +20,6 @@ from telegram.error import (BadRequest, ChatMigrated, NetworkError,
 from telegram.ext import CommandHandler, Updater
 
 
-logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-                    level=logging.INFO,filename="program_log.log")            
-
 ap = argparse.ArgumentParser()
 ap.add_argument(
     "-k", "--key", required=True, type=str, help="Telegram bot api key. It's required in order to run this bot")
@@ -85,6 +82,9 @@ http_threads = args["threads"]
 user_limit = args["limit"]
 auto_remove = args["remove"]
 admin_pw = args["admin_password"]
+
+logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+                    level=logging.INFO,filename=bot_path+"program_log.log")
 
 
 # enable sentry if sentry_key is passed as an argument
